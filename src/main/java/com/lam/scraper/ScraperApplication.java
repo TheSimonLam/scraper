@@ -15,9 +15,15 @@ public class ScraperApplication {
 	}
 
 	@GetMapping("/search")
-	public String hello(@RequestParam(value = "make") String make, @RequestParam(value = "model") String model,
+	public String search(@RequestParam(value = "make") String make, @RequestParam(value = "model") String model,
 			@RequestParam(value = "minPrice") Integer minPrice, @RequestParam(value = "maxPrice") Integer maxPrice) {
 
-		return String.format("Your make is: %s, your model is: %s, your min price is: %d, your max price is: %d", make, model, minPrice, maxPrice);
+		//TODO: CALL THE JSSoup to scrape all sites
+		// 1. AutoTrader
+		// 2. Ebay
+		// 3. GumTree
+
+		return String.format("Your make is: %s, your model is: %s, your min price is: %d, your max price is: %d", make,
+				model, minPrice, maxPrice);
 	}
 }
