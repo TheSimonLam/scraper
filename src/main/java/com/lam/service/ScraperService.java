@@ -1,6 +1,6 @@
-package com.lam.scraper;
+package com.lam.service;
 
-import com.lam.listings.*;
+import com.lam.models.*;
 import org.springframework.beans.factory.annotation.Value;
 import java.util.ArrayList;
 import java.util.List;

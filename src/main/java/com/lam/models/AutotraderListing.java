@@ -1,4 +1,4 @@
-package com.lam.listings;
+package com.lam.models;
 
 import java.io.Serializable;
 

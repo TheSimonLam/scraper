@@ -1,4 +1,6 @@
-package com.lam.scraper;
+package com.lam.controller;
+
+import com.lam.service.ScraperService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
