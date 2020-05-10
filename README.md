@@ -8,6 +8,7 @@ This is a REST API created using Springboot that scrapes car sales listing sites
 
 * Java version "11.0.7" 2020-04-14 LTS
 * Apache Maven 3.6.3
+* Jsoup
 
 ## Running Locally
 
