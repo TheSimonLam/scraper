@@ -34,6 +34,8 @@ public class AutotraderScraper {
 
         List<AutotraderListing> autoTraderListings = new ArrayList<>();
 
+        // TODO: Make sure to handle optinal filter values below !
+        
         String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
                 + "&model=" + formattedModel + "&radius=" + maxDistance + "&postcode=" + postcode + "&price-from="
                 + minPrice + "&price-to=" + maxPrice
