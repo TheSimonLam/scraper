@@ -1,4 +1,4 @@
-package com.lam.models;
+package com.lam.scraper.models;
 
 import java.io.Serializable;
 

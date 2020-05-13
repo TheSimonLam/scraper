@@ -1,6 +1,6 @@
-package com.lam.controller;
+package com.lam.scraper;
 
-import com.lam.service.AutotraderScraper;
+import com.lam.scraper.service.AutotraderScraper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

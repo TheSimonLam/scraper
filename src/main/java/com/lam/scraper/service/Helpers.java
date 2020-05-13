@@ -1,4 +1,4 @@
-package com.lam.service;
+package com.lam.scraper.service;
 
 public class Helpers {
 
