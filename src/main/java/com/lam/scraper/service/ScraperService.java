@@ -2,6 +2,8 @@ package com.lam.scraper.service;
 
 import com.lam.scraper.models.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.jsoup.Jsoup;
@@ -9,6 +11,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+@Service
 public class ScraperService {
 
     @Value("${site.autotrader.url}")
@@ -19,25 +22,35 @@ public class ScraperService {
     public ScraperService() {
     }
 
-    public String scrapeAutotrader(String make, String model, Integer minPrice, Integer maxPrice) {
+    public String scrapeAutotrader(String postcode, String maxDistance, String make, String model, Integer minPrice,
+            Integer maxPrice) {
         List<AutotraderListing> autoTraderListings = new ArrayList<>();
+        Helpers filterFormatter = new Helpers();
 
-        String html = "";
-		try {
-			html = Jsoup.connect("https://www.autotrader.co.uk/car-search?advertClassification=standard&make=NISSAN&postcode=LL113HR&model=350%20Z&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New&advertising-location=at_cars&is-quick-search=TRUE&page=1").get().html();
-		} catch (Exception e) {
-			System.out.println(e);
-		}
+        String formattedMake = filterFormatter.formatFilterForUrl(make);
+        String formattedModel = filterFormatter.formatFilterForUrl(model);
 
-		Document doc = Jsoup.parse(html);
-		Elements elements = doc.getElementsByClass("js-click-handler listing-fpa-link tracking-standard-link").select("*");
-		
-		for(Element element : elements) {
+        String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
+                + "&model=" + formattedModel + "&radius=" + maxDistance + "&postcode=" + postcode + "&price-from="
+                + minPrice + "&price-to=" + maxPrice
+                + "&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New&advertising-location=at_cars&is-quick-search=TRUE&page=1";
+        try {
+            html = Jsoup.connect(html).get().html();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        Document doc = Jsoup.parse(html);
+        Elements titleElement = doc.getElementsByClass("js-click-handler listing-fpa-link tracking-standard-link")
+                .select("*");
+        
+
+        for (Element element : titleElement) {
             AutotraderListing autotraderListing = new AutotraderListing();
             autotraderListing.setTitle(element.text());
             autoTraderListings.add(autotraderListing);
-		}
-		
-		return autoTraderListings.toString();
+        }
+
+        return autoTraderListings.toString();
     }
 }
