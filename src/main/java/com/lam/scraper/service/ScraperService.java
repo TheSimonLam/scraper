@@ -24,7 +24,7 @@ public class ScraperService {
 
     public String scrapeAutotrader(String postcode, String maxDistance, String make, String model, Integer minPrice,
             Integer maxPrice) {
-        List<AutotraderListing> autoTraderListings = new ArrayList<>();
+        List<Listing> autoTraderListings = new ArrayList<>();
         Helpers filterFormatter = new Helpers();
 
         String formattedMake = filterFormatter.formatFilterForUrl(make);
@@ -46,7 +46,7 @@ public class ScraperService {
         
 
         for (Element element : titleElement) {
-            AutotraderListing autotraderListing = new AutotraderListing();
+            Listing autotraderListing = new Listing();
             autotraderListing.setTitle(element.text());
             autoTraderListings.add(autotraderListing);
         }

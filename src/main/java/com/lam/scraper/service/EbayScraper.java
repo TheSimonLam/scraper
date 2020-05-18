@@ -1,11 +1,12 @@
 package com.lam.scraper.service;
 
-import com.lam.scraper.models.Listing;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.lam.scraper.models.Listing;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import javax.swing.DefaultListModel;
 
@@ -14,21 +15,21 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 @Service
-public class AutotraderScraper {
+public class EbayScraper {
 
-    @Value("${site.autotrader.url}")
+    @Value("${site.ebay.url}")
     private String autotraderUrl;
-    @Value("${site.autotrader.parse.timeout.ms}")
+    @Value("${site.ebay.parse.timeout.ms}")
     Integer parseTimeoutMillis;
 
-    public AutotraderScraper() {
+    public EbayScraper() {
     }
 
-    public List<Listing> scrapeAutotrader(String postcode, Integer maxDistance, String make, String model,
-            Integer minPrice, Integer maxPrice, String minYear, String maxYear, Integer maxMileage, String transmission,
+    public List<Listing> scrapeEbay(String postcode, Integer maxDistance, String make, String model, Integer minPrice,
+            Integer maxPrice, String minYear, String maxYear, Integer maxMileage, String transmission,
             String fuelType) {
 
-        String toStrMaxDistance = filterToUrl(String.valueOf(maxDistance), "maxDistance");
+                String toStrMaxDistance = filterToUrl(String.valueOf(maxDistance), "maxDistance");
         String toStrMinPrice = filterToUrl(String.valueOf(minPrice), "minPrice");
         String toStrMaxPrice = filterToUrl(String.valueOf(maxPrice), "maxPrice");
         minYear = filterToUrl(String.valueOf(minYear), "minYear");
@@ -101,6 +102,7 @@ public class AutotraderScraper {
         }
 
         return autoTraderListings;
+
     }
 
     public String filterToUrl(String filter, String filterToFormat) {

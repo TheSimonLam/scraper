@@ -2,7 +2,7 @@ package com.lam.scraper.models;
 
 import java.io.Serializable;
 
-public class AutotraderListing implements Serializable{
+public class Listing implements Serializable{
     private static final long serialVersionUID = 1L;
 
     private String title;
@@ -11,8 +11,8 @@ public class AutotraderListing implements Serializable{
     private String mileage;
     private String listingUrl;
 
-    public AutotraderListing() {}
-    public AutotraderListing(String title, String year, String price, String mileage, String listingUrl) {
+    public Listing() {}
+    public Listing(String title, String year, String price, String mileage, String listingUrl) {
         super();
         this.title = title;
         this.year = year;
