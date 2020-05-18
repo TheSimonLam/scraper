@@ -2,8 +2,10 @@ package com.lam.scraper.controller;
 
 import java.util.List;
 
-import com.lam.scraper.models.AutotraderListing;
+import com.lam.scraper.models.Listing;
 import com.lam.scraper.service.AutotraderScraper;
+import com.lam.scraper.service.EbayScraper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,21 +16,39 @@ import org.springframework.web.bind.annotation.RestController;
 public class EndpointController {
 
 	@Autowired
-	AutotraderScraper scraperService;
+	AutotraderScraper autotraderScraper;
+
+	@Autowired
+	EbayScraper ebayScraper;
 
 	@CrossOrigin(origins = {"http://localhost:3000", "http://www.scraper.com"})
 	@GetMapping("/autotrader")
-	public List<AutotraderListing> autotraderEndpoint(@RequestParam(value = "postcode") String postcode,
+	public List<Listing> autotraderEndpoint(@RequestParam(value = "postcode") String postcode,
 			@RequestParam(required = false, value = "maxDistance") Integer maxDistance, @RequestParam(value = "make") String make,
 			@RequestParam(value = "model") String model, @RequestParam(required = false, value = "minPrice") Integer minPrice,
 			@RequestParam(required = false, value = "maxPrice") Integer maxPrice, @RequestParam(required = false, value = "minYear") String minYear,
 			@RequestParam(required = false, value = "maxYear") String maxYear, @RequestParam(required = false, value = "maxMileage") Integer maxMileage,
 			@RequestParam(required = false, value = "transmission") String transmission, @RequestParam(required = false, value = "fuelType") String fuelType) {
 
-		List<AutotraderListing> autoTraderResponse = scraperService.scrapeAutotrader(postcode, maxDistance, make, model,
+		List<Listing> autoTraderResponse = autotraderScraper.scrapeAutotrader(postcode, maxDistance, make, model,
 				minPrice, maxPrice, minYear, maxYear, maxMileage, transmission, fuelType);
 
 		return autoTraderResponse;
+	}
+
+	@CrossOrigin(origins = {"http://localhost:3000", "http://www.scraper.com"})
+	@GetMapping("/ebay")
+	public List<Listing> ebayEndpoint(@RequestParam(value = "postcode") String postcode,
+			@RequestParam(required = false, value = "maxDistance") Integer maxDistance, @RequestParam(value = "make") String make,
+			@RequestParam(value = "model") String model, @RequestParam(required = false, value = "minPrice") Integer minPrice,
+			@RequestParam(required = false, value = "maxPrice") Integer maxPrice, @RequestParam(required = false, value = "minYear") String minYear,
+			@RequestParam(required = false, value = "maxYear") String maxYear, @RequestParam(required = false, value = "maxMileage") Integer maxMileage,
+			@RequestParam(required = false, value = "transmission") String transmission, @RequestParam(required = false, value = "fuelType") String fuelType) {
+
+		List<Listing> ebayResponse = ebayScraper.scrapeEbay(postcode, maxDistance, make, model,
+				minPrice, maxPrice, minYear, maxYear, maxMileage, transmission, fuelType);
+
+		return ebayResponse;
 	}
 
 }
