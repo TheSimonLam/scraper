@@ -21,56 +21,42 @@ public class AutotraderScraper {
     @Value("${site.autotrader.parse.timeout.ms}")
     Integer parseTimeoutMillis;
 
-    // String formattedMaxDistance = ""; String formattedMinPrice = ""; String
-    // formattedMaxPrice = ""; String formattedMinYear = "";
-    // String formattedMaxYear = ""; String formattedMaxMileage = ""; String
-    // formattedTransmission = ""; String formattedFuelType = "";
-
     public AutotraderScraper() {
     }
 
     public String filterToUrl(String filter, String filterToFormat) {
-        // if(!filter.equals("null")) {
-        // if(filter.equals(formattedMaxDistance)) {
-        // filter = "&radius=" + formattedMaxDistance;
-        // } else if (filter.equals(formattedMinPrice)) {
-        // filter = "&price-from=" + formattedMinPrice;
-        // } else if (filter.equals(formattedMaxPrice)) {
-        // filter = "&price-to=" + formattedMaxPrice;
-        // }
-        // return filter;
-        // } else {
-        // return "";
-        // }
 
-        if (/* !filter.equals("null") */ filter != null) {
-            String filterToUrl = "";
+        String filterToUrl = "";
+
+        if (!filter.equals("null") && filter != null) {
+            
             switch (filterToFormat) {
                 case ("maxDistance"):
-                    filterToUrl = "&radius=" + filter;
+                    filterToUrl = "&radius=";
                     break;
                 case ("minPrice"):
-                    filterToUrl = "&price-from=" + filter;
+                    filterToUrl = "&price-from=";
                     break;
                 case ("maxPrice"):
-                    filterToUrl = "&price-to=" + filter;
+                    filterToUrl = "&price-to=";
                     break;
                 case ("minYear"):
-                    filterToUrl = "&year-from=" + filter;
+                    filterToUrl = "&year-from=";
                     break;
                 case ("maxYear"):
-                    filterToUrl = "&year-to=" + filter;
+                    filterToUrl = "&year-to=";
                     break;
                 case ("maxMileage"):
-                    filterToUrl = "&maximum-mileage=" + filter;
+                    filterToUrl = "&maximum-mileage=";
                     break;
                 case ("transmission"):
-                    filterToUrl = "&transmission=" + filter;
+                    filterToUrl = "&transmission=";
                     break;
                 case ("fuelType"):
-                    filterToUrl = "&fuel-type=" + filter;
+                    filterToUrl = "&fuel-type=";
                     break;
             }
+            filterToUrl += filter;
             return filterToUrl;
         } else {
             return "";
@@ -81,14 +67,14 @@ public class AutotraderScraper {
             Integer minPrice, Integer maxPrice, String minYear, String maxYear, Integer maxMileage, String transmission,
             String fuelType) {
 
-        String toStrMaxDistance = filterToUrl(maxDistance.toString(), "maxDistance");
-        String toStrMinPrice = filterToUrl(minPrice.toString(), "minPrice");
-        String toStrMaxPrice = filterToUrl(maxPrice.toString(), "maxPrice");
-        minYear = filterToUrl(minYear, "minYear");
-        maxYear = filterToUrl(maxYear, "maxYear");
-        String toMaxMileage = filterToUrl(maxMileage.toString(), "Mileage");
-        transmission = filterToUrl(transmission, "transmission");
-        fuelType = filterToUrl(fuelType, "fuelType");
+        String toStrMaxDistance = filterToUrl(String.valueOf(maxDistance), "maxDistance");
+        String toStrMinPrice = filterToUrl(String.valueOf(minPrice), "minPrice");
+        String toStrMaxPrice = filterToUrl(String.valueOf(maxPrice), "maxPrice");
+        minYear = filterToUrl(String.valueOf(minYear), "minYear");
+        maxYear = filterToUrl(String.valueOf(maxYear), "maxYear");
+        String toStrMaxMileage = filterToUrl(String.valueOf(maxMileage), "maxMileage");
+        transmission = filterToUrl(String.valueOf(transmission), "transmission");
+        fuelType = filterToUrl(String.valueOf(fuelType), "fuelType");
 
         Helpers autotraderHelper = new Helpers();
 
@@ -99,7 +85,7 @@ public class AutotraderScraper {
 
         String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
                 + "&model=" + formattedModel + toStrMaxDistance + "&postcode=" + postcode + toStrMinPrice
-                + toStrMaxPrice + minYear + maxYear + toMaxMileage + transmission + fuelType
+                + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelType
                 + "&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New&advertising-location=at_cars&is-quick-search=TRUE&page=1";
 
         try {
