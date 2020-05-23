@@ -2,7 +2,7 @@ package com.lam.scraper.service;
 
 public class Helpers {
 
-    public String EncodeSpacesForUrl(String filter) {
+    public String encodeSpacesForUrl(String filter) {
         String[] words = filter.split(" ");
         StringBuilder sentence = new StringBuilder(words[0]);
 

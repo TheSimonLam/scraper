@@ -43,8 +43,8 @@ public class AutotraderScraper {
 
         Helpers autotraderHelper = new Helpers();
 
-        String formattedMake = autotraderHelper.EncodeSpacesForUrl(make);
-        String formattedModel = autotraderHelper.EncodeSpacesForUrl(model);
+        String formattedMake = autotraderHelper.encodeSpacesForUrl(make);
+        String formattedModel = autotraderHelper.encodeSpacesForUrl(model);
 
         String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
                 + "&model=" + formattedModel + toStrMaxDistance + "&postcode=" + postcode + toStrMinPrice
@@ -99,12 +99,12 @@ public class AutotraderScraper {
     public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages) {
 
         List<Listing> autoTraderListings = new ArrayList<>();
-        
+
         for (String html : htmlsToScrape) {
 
             try {
                 html = Jsoup.connect(html).get().html();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 System.out.println(e);
             }
 
