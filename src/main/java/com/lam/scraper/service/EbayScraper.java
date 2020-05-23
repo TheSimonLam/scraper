@@ -1,6 +1,7 @@
 package com.lam.scraper.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -67,7 +68,7 @@ public class EbayScraper {
         doc.select("span.newly").remove();
         doc.select("wbr").remove();
         final Elements scrapedTitles = doc.select("h3.lvtitle > a").select("*");
-        System.out.println(scrapedTitles);
+        // System.out.println(scrapedTitles);
         final Elements scrapedPrices = doc.select("span.bold").select("*");
 
         final Elements scrapedUrlListings = doc.select("h3.lvtitle > a").select("*");
@@ -110,7 +111,12 @@ public class EbayScraper {
                     listMileage.addElement("-");
                 }
                 if (!regDateFound) {
-                    listYear.addElement("-");
+                    String strYearFromTitle = checkTitleForYear(scrapedTitles.get(x).text());
+                    if (strYearFromTitle.isEmpty()) {
+                        listYear.addElement("-");
+                    } else {
+                        listYear.addElement(strYearFromTitle);
+                    }
                 }
 
                 ebayListing.setMileage(listMileage.get(x).toString());
@@ -134,6 +140,23 @@ public class EbayScraper {
 
         return ebayListings;
 
+    }
+
+    public String checkTitleForYear(String strTitle) {
+        strTitle = strTitle.replaceAll("[^0-9]", "#");
+        String[] arr = strTitle.split("#");
+        StringBuilder values = new StringBuilder();
+        for (String s : arr) {
+            if (s.matches("^[0-9]{4}$")) {
+                values.append(s);
+            }
+        }
+        if(values.length() == 0) {
+            return "";
+        }
+        System.out.println(values.toString());
+
+        return values.toString();
     }
 
     public String[] extractListingUrls(final Elements scrapedUrlListings) {
