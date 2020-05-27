@@ -61,7 +61,7 @@ public class AutotraderScraper {
 
         int intMaxPages = getMaxPages(htmlGetMaxPages);
         List<String> pageUrlsToScrape = buildUrlsToScrape(intMaxPages, html);
-
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(pageUrlsToScrape, intMaxPages));
     }
 
@@ -114,10 +114,12 @@ public class AutotraderScraper {
 
             Elements scrapedUrls = null;
             Elements scrapedListingInfoSection = null;
+            Elements scrapedImageUrls = null;
 
             try {
                 scrapedUrls = doc.select("h2.listing-title.title-wrap > a");
                 scrapedListingInfoSection = doc.select("ul.listing-key-specs");
+                scrapedImageUrls = doc.select("a.js-click-handler.listing-fpa-link.tracking-standard-link > img");
                 int intTotalListings = scrapedListingInfoSection.size();
                 DefaultListModel<String> listYear = new DefaultListModel<>();
                 DefaultListModel<String> listMileage = new DefaultListModel<>();
@@ -146,7 +148,11 @@ public class AutotraderScraper {
 
                     // SET URL
                     autotraderListing.setListingUrl(
-                            "https://www.autotrader.co.uk/" + scrapedUrls.get(x).attr("href").toString());
+                            "https://www.autotrader.co.uk" + scrapedUrls.get(x).attr("href").toString());
+
+                            // SET IMAGE URL
+                    Element scrapedImageUrl = scrapedImageUrls.get(x);
+                    autotraderListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
                     autoTraderListings.add(autotraderListing);
                 }

@@ -76,10 +76,12 @@ public class CarsnipScraper {
 
             Elements scrapedUrls = null;
             Elements scrapedMileage = null;
+            Elements scrapedImageUrls = null;
 
             try {
                 scrapedUrls = doc.select("div.Wrapper-sc-6c2rip-0.lenVyH > a");
                 scrapedMileage = doc.select("ul.Wrapper-sc-12mo1ed-0.jAHIgj");
+                scrapedImageUrls = doc.select("a.AdvertImage__Link-sc-18bwoxc-1.fmqNpw > img");
                 int intTotalListings = scrapedTitles.size();
                 int intFirstSpan = 0;
 
@@ -92,7 +94,8 @@ public class CarsnipScraper {
 
                     // SET YEAR & MILEAGE
                     carsnipListing.setYear("-");
-                    carsnipListing.setMileage(scrapedMileage.get(x).select("span[itemprop = mileageFromOdometer]").text());
+                    carsnipListing
+                            .setMileage(scrapedMileage.get(x).select("span[itemprop = mileageFromOdometer]").text());
 
                     // SET PRICE
                     carsnipListing.setPrice(scrapedPrices.get(intFirstSpan).text());
@@ -100,6 +103,10 @@ public class CarsnipScraper {
 
                     // SET URL
                     carsnipListing.setListingUrl("https://www.carsnip.com/" + scrapedUrls.get(x).attr("href").toString());
+
+                    // SET IMAGE URL
+                    Element scrapedImageUrl = scrapedImageUrls.get(x);
+                    carsnipListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
                     carsnipListings.add(carsnipListing);
                 }

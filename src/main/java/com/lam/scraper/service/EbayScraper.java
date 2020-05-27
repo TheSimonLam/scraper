@@ -74,10 +74,12 @@ public class EbayScraper {
         final String[] strUrlListings = extractListingUrls(scrapedUrlListings);
 
         Elements scrapedListingInfoSection = null;
+        Elements scrapedImageUrls = null;
 
         try {
             scrapedListingInfoSection = doc.select("ul.lvdetails.left.space-zero.full-width");
             // System.out.println("1234567890 " + scrapedListingInfoSection.toString());
+            scrapedImageUrls = doc.select("a.img.imgWr2 > img");
             final int intTotalListings = scrapedListingInfoSection.size();
             final DefaultListModel<String> listMileage = new DefaultListModel<>();
             final DefaultListModel<String> listYear = new DefaultListModel<>();
@@ -126,9 +128,12 @@ public class EbayScraper {
                 // SET PRICE
                 ebayListing.setPrice(scrapedPrices.get(x).text());
 
-                // SET URLS
-
+                // SET LISTING URL
                 ebayListing.setListingUrl(strUrlListings[x]);
+
+                // SET LISTING IMAGE URL
+                Element scrapedImageUrl = scrapedImageUrls.get(x);
+                ebayListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
                 ebayListings.add(ebayListing);
 
@@ -153,7 +158,6 @@ public class EbayScraper {
         if(values.length() == 0) {
             return "";
         }
-        System.out.println(values.toString());
 
         return values.toString();
     }

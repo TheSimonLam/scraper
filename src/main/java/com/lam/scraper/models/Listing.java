@@ -10,21 +10,31 @@ public class Listing implements Serializable {
     private String price;
     private String mileage;
     private String listingUrl;
+    private String listingImageAddress;
 
     public Listing() {
     }
 
-    public Listing(String title, String year, String price, String mileage, String listingUrl) {
+    public Listing(String title, String year, String price, String mileage, String listingUrl, String listingImageAddress) {
         super();
         this.title = title;
         this.year = year;
         this.price = price;
         this.mileage = mileage;
         this.listingUrl = listingUrl;
+        this.listingImageAddress = listingImageAddress;
     }
 
     public static long getSerialversionuid() {
         return serialVersionUID;
+    }
+
+    public String getListingImageAddress() {
+        return this.listingImageAddress;
+    }
+
+    public void setListingImageAddress(String listingImageAddress) {
+        this.listingImageAddress = listingImageAddress;
     }
 
     public String getListingUrl() {
