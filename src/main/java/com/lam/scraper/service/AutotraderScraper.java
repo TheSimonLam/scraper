@@ -145,7 +145,8 @@ public class AutotraderScraper {
                     autotraderListing.setPrice(scrapedPrices.get(x).text());
 
                     // SET URL
-                    autotraderListing.setListingUrl(scrapedUrls.get(x).attr("href").toString());
+                    autotraderListing.setListingUrl(
+                            "https://www.autotrader.co.uk/" + scrapedUrls.get(x).attr("href").toString());
 
                     autoTraderListings.add(autotraderListing);
                 }

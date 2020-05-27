@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 import com.lam.scraper.models.Listing;
 import com.lam.scraper.service.AutotraderScraper;
 import com.lam.scraper.service.EbayScraper;
+import com.lam.scraper.service.CarsnipScraper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class EndpointController {
 
 	@Autowired
-	AutotraderScraper autotraderScraper;
+	AutotraderScraper autotraderScraper = new AutotraderScraper();
 
 	private static final Logger logger = LoggerFactory.getLogger(EndpointController.class);
 
 	@Autowired
-	EbayScraper ebayScraper;
+	EbayScraper ebayScraper = new EbayScraper();
+
+	@Autowired
+	CarsnipScraper gumtreeScraper = new CarsnipScraper();
 
 	@CrossOrigin(origins = { "http://localhost:3000", "http://www.scraper.com" })
 	@GetMapping("/autotrader")
@@ -80,6 +84,25 @@ public class EndpointController {
 				minPrice, maxPrice, minYear, maxYear, maxMileage, transmission, fuelType);
 
 		return ebayResponse;
+	}
+
+	@CrossOrigin(origins = { "http://localhost:3000", "http://www.scraper.com" })
+	@GetMapping("/carsnip")
+	public CompletableFuture<List<Listing>> gumtreeEndpoint(@RequestParam(value = "postcode") String postcode,
+			@RequestParam(required = false, value = "maxDistance") Integer maxDistance,
+			@RequestParam(value = "make") String make, @RequestParam(value = "model") String model,
+			@RequestParam(required = false, value = "minPrice") Integer minPrice,
+			@RequestParam(required = false, value = "maxPrice") Integer maxPrice,
+			@RequestParam(required = false, value = "minYear") String minYear,
+			@RequestParam(required = false, value = "maxYear") String maxYear,
+			@RequestParam(required = false, value = "maxMileage") Integer maxMileage,
+			@RequestParam(required = false, value = "transmission") String transmission,
+			@RequestParam(required = false, value = "fuelType") String fuelType) {
+
+		CompletableFuture<List<Listing>> gumtreeResponse = gumtreeScraper.scrapeCarsnip(postcode, maxDistance, make, model,
+				minPrice, maxPrice, minYear, maxYear, maxMileage, transmission, fuelType);
+
+		return gumtreeResponse;
 	}
 
 }
