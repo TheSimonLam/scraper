@@ -2,6 +2,7 @@ package com.lam.scraper.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Helpers {
@@ -19,10 +20,15 @@ public class Helpers {
     }
 
     public List<String> decodeApiInput(String filter) {
-        String[] elements = filter.split(",");
-        List<String> fixedLengthList = Arrays.asList(elements);
-        ArrayList<String> listOfString = new ArrayList<String>(fixedLengthList);
-        return listOfString;
+        if (filter == null) {
+            return Collections.emptyList();
+        } else {
+            String[] elements = filter.split(",");
+            List<String> fixedLengthList = Arrays.asList(elements);
+            ArrayList<String> listOfString = new ArrayList<String>(fixedLengthList);
+            return listOfString;
+        }
+
     }
 
 }

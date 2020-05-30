@@ -48,10 +48,6 @@ public class AutotraderScraper {
         List<String> fuelTypesToList = autotraderHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
-        // String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
-        //         + "&model=" + formattedModel + toStrMaxDistance + "&postcode=" + postcode + toStrMinPrice
-        //         + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelTypeToUrl
-        //         + "&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New&advertising-location=at_cars&is-quick-search=TRUE&page=";
                 String html = "https://www.autotrader.co.uk/car-search?sort=relevance&postcode=" + postcode + toStrMaxDistance + "&make=" + formattedMake + "&model=" + formattedModel + toStrMinPrice + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelTypeToUrl + "&page=";
         String htmlGetMaxPages = html + "1";
 
@@ -63,7 +59,7 @@ public class AutotraderScraper {
 
         int intMaxPages = getMaxPages(htmlGetMaxPages);
         List<String> pageUrlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        System.out.println("THIS IS THE URL LINK ----->" + html);
+        //System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(pageUrlsToScrape, intMaxPages));
     }
 

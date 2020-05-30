@@ -35,7 +35,7 @@ public class EbayScraper {
         final String toStrMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
         final String toStrMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
         final String toStrMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
-        final String minAndMaxYear = modelYearRangeToUrl(minYear, maxYear);
+        final String minAndMaxYear = modelYearRangeToUrl(String.valueOf(minYear), String.valueOf(maxYear));
         final String toStrMaxMileage = maxMileageToUrl(String.valueOf(maxMileage));
         transmission = filterToUrl("transmission", String.valueOf(transmission));
 
@@ -50,7 +50,7 @@ public class EbayScraper {
                 + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
                 + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + "&_nkw="
                 + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(html));
     }
 
@@ -247,13 +247,19 @@ public class EbayScraper {
         return "";
     }
 
-    public String modelYearRangeToUrl(final String minYear, final String maxYear) {
+    public String modelYearRangeToUrl(String minYear, String maxYear) {
+        
+        if(maxYear.equals("null")) {
+            maxYear = "2020";
+        }
+        if(minYear.equals("null")) {
+            minYear = "1980";
+        }
         final int intMinYear = Integer.parseInt(minYear);
         final int intMaxYear = Integer.parseInt(maxYear);
 
         String urlModelYears = "&Model%2520Year=";
 
-        if (!maxYear.equals("null") && maxYear != null) {
             for (int i = intMaxYear; i >= intMinYear; i--) {
                 if (i == intMinYear) {
                     urlModelYears += String.valueOf(i);
@@ -262,9 +268,6 @@ public class EbayScraper {
                 }
             }
             return urlModelYears;
-        } else {
-            return "";
-        }
 
     }
 
