@@ -1,147 +1,262 @@
-// package com.lam.scraper.service;
+package com.lam.scraper.service;
 
-// import java.util.ArrayList;
-// import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-// import com.lam.scraper.models.Listing;
+import com.lam.scraper.models.Listing;
 
-// import org.springframework.beans.factory.annotation.Value;
-// import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 
-// import javax.swing.DefaultListModel;
+import javax.swing.DefaultListModel;
 
-// import org.jsoup.Jsoup;
-// import org.jsoup.nodes.Document;
-// import org.jsoup.select.Elements;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-// @Service
-// public class EbayScraper {
+@Service
+@Async
+public class EbayScraper {
 
-//     @Value("${site.ebay.url}")
-//     private String autotraderUrl;
-//     @Value("${site.ebay.parse.timeout.ms}")
-//     Integer parseTimeoutMillis;
+    // @Value("${site.ebay.url}")
+    // private String ebayUrl;
+    // @Value("${site.ebay.parse.timeout.ms}")
+    // Integer parseTimeoutMillis;
 
-//     public EbayScraper() {
-//     }
+    public EbayScraper() {
+    }
 
-//     public List<Listing> scrapeEbay(String postcode, Integer maxDistance, String make, String model, Integer minPrice,
-//             Integer maxPrice, String minYear, String maxYear, Integer maxMileage, String transmission,
-//             String fuelType) {
+    public CompletableFuture<List<Listing>> scrapeEbay(final String postcode, final Integer maxDistance,
+            final String make, final String model, final Integer minPrice, final Integer maxPrice, final String minYear,
+            final String maxYear, final Integer maxMileage, String transmission, String fuelType) {
 
-//                 String toStrMaxDistance = filterToUrl(String.valueOf(maxDistance), "maxDistance");
-//         String toStrMinPrice = filterToUrl(String.valueOf(minPrice), "minPrice");
-//         String toStrMaxPrice = filterToUrl(String.valueOf(maxPrice), "maxPrice");
-//         minYear = filterToUrl(String.valueOf(minYear), "minYear");
-//         maxYear = filterToUrl(String.valueOf(maxYear), "maxYear");
-//         String toStrMaxMileage = filterToUrl(String.valueOf(maxMileage), "maxMileage");
-//         transmission = filterToUrl(String.valueOf(transmission), "transmission");
-//         fuelType = filterToUrl(String.valueOf(fuelType), "fuelType");
+        final String toStrMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
+        final String toStrMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
+        final String toStrMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
+        final String minAndMaxYear = modelYearRangeToUrl(minYear, maxYear);
+        final String toStrMaxMileage = maxMileageToUrl(String.valueOf(maxMileage));
+        transmission = filterToUrl("transmission", String.valueOf(transmission));
+        fuelType = filterToUrl("fuelType", String.valueOf(fuelType));
 
-//         Helpers autotraderHelper = new Helpers();
+        final Helpers ebayHelper = new Helpers();
 
-//         String formattedMake = autotraderHelper.EncodeSpacesForUrl(make);
-//         String formattedModel = autotraderHelper.EncodeSpacesForUrl(model);
+        final String strMakeAndModel = make + " " + model;
+        final String formattedMakeAndModel = ebayHelper.encodeSpacesForUrl(strMakeAndModel);
 
-//         List<Listing> autoTraderListings = new ArrayList<>();
+        final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + toStrMinPrice + toStrMaxPrice
+                + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
+                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelType + transmission + "&_nkw="
+                + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
+        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        return CompletableFuture.completedFuture(scrape(html));
+    }
 
-//         String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
-//                 + "&model=" + formattedModel + toStrMaxDistance + "&postcode=" + postcode + toStrMinPrice
-//                 + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelType
-//                 + "&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New&advertising-location=at_cars&is-quick-search=TRUE&page=1";
+    public List<Listing> scrape(String html) {
 
-//         try {
-//             html = Jsoup.connect(html).get().html();
-//         } catch (Exception e) {
-//             System.out.println(e);
-//         }
+        final List<Listing> ebayListings = new ArrayList<>();
 
-//         Document doc = Jsoup.parse(html);
-//         Elements scrapedTitles = doc.getElementsByClass("listing-title title-wrap").select("*");
-//         Elements scrapedPrices = doc.getElementsByClass("vehicle-price").select("*");
+        try {
+            html = Jsoup.connect(html).get().html();
+        } catch (final Exception e) {
+            System.out.println(e);
+        }
 
-//         Elements scrapedUrls = null;
-//         Elements scrapedListingInfoSection = null;
+        final Document doc = Jsoup.parse(html);
+        doc.select("span.newly").remove();
+        doc.select("wbr").remove();
+        final Elements scrapedTitles = doc.select("h3.lvtitle > a").select("*");
+        final Elements scrapedPrices = doc.select("span.bold").select("*");
 
-//         try {
-//             scrapedUrls = doc.select("h2.listing-title.title-wrap > a");
-//             scrapedListingInfoSection = doc.select("ul.listing-key-specs");
-//             int intTotalListings = scrapedListingInfoSection.size();
-//             DefaultListModel<String> listYear = new DefaultListModel<>();
-//             DefaultListModel<String> listMileage = new DefaultListModel<>();
+        final Elements scrapedUrlListings = doc.select("h3.lvtitle > a").select("*");
+        final String[] strUrlListings = extractListingUrls(scrapedUrlListings);
 
-//             for (int x = 0; x < intTotalListings; x++) {
+        Elements scrapedListingInfoSection = null;
+        Elements scrapedImageUrls = null;
 
-//                 Listing autotraderListing = new Listing();
+        try {
+            scrapedListingInfoSection = doc.select("ul.lvdetails.left.space-zero.full-width");
+            scrapedImageUrls = doc.select("a.img.imgWr2 > img");
+            final int intTotalListings = scrapedListingInfoSection.size();
+            final DefaultListModel<String> listMileage = new DefaultListModel<>();
+            final DefaultListModel<String> listYear = new DefaultListModel<>();
 
-//                 // SET TITLE
-//                 autotraderListing.setTitle(scrapedTitles.get(x).text());
+            for (int x = 0; x < intTotalListings; x++) {
 
-//                 // SET YEAR & MILEAGE
-//                 String checkIfWriteOffIcon = scrapedListingInfoSection.get(x).getElementsByTag("li").first().text();
-//                 if (checkIfWriteOffIcon.equals("CAT Write-off Category Icon")) {
-//                     listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(1).text());
-//                     listMileage.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(3).text());
-//                 } else {
-//                     listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").first().text());
-//                     listMileage.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(2).text());
-//                 }
-//                 autotraderListing.setYear(listYear.get(x).toString());
-//                 autotraderListing.setMileage(listMileage.get(x).toString());
+                final Listing ebayListing = new Listing();
 
-//                 // SET PRICE
-//                 autotraderListing.setPrice(scrapedPrices.get(x).text());
+                // SET TITLE
+                ebayListing.setTitle(scrapedTitles.get(x).text());
 
-//                 // SET URL
-//                 autotraderListing.setListingUrl(scrapedUrls.get(x).attr("href").toString());
+                // SET MILEAGE
+                final Element listingInfo = scrapedListingInfoSection.get(x);
+                final int noOfListItems = listingInfo.getElementsByTag("li").size();
+                boolean mileageFound = false;
+                boolean regDateFound = false;
+                for (int y = 0; y < noOfListItems; y++) {
+                    final String strListItem = listingInfo.getElementsByTag("li").get(y).text();
+                    if (strListItem.contains("Mileage:")) {
+                        listMileage.addElement(strListItem.substring(9, strListItem.length()));
+                        mileageFound = true;
+                    }
+                    if (strListItem.contains("Reg. Date:")) {
+                        listYear.addElement(strListItem.substring(11, strListItem.length()));
+                        regDateFound = true;
+                    }
+                }
 
-//                 autoTraderListings.add(autotraderListing);
-//             }
-//         } catch (Exception e) {
-//             System.out.println(e);
-//         }
+                if (!mileageFound) {
+                    listMileage.addElement("-");
+                }
+                if (!regDateFound) {
+                    String strYearFromTitle = checkTitleForYear(scrapedTitles.get(x).text());
+                    if (strYearFromTitle.isEmpty()) {
+                        listYear.addElement("-");
+                    } else {
+                        listYear.addElement(strYearFromTitle);
+                    }
+                }
 
-//         return autoTraderListings;
+                ebayListing.setMileage(listMileage.get(x).toString());
 
-//     }
+                // SET YEAR
+                ebayListing.setYear(listYear.get(x).toString());
 
-//     public String filterToUrl(String filter, String filterToFormat) {
+                // SET PRICE
+                ebayListing.setPrice(scrapedPrices.get(x).text());
 
-//         String filterToUrl = "";
+                // SET LISTING URL
+                ebayListing.setListingUrl(strUrlListings[x]);
 
-//         if (!filter.equals("null") && filter != null) {
-            
-//             switch (filterToFormat) {
-//                 case ("maxDistance"):
-//                     filterToUrl = "&radius=";
-//                     break;
-//                 case ("minPrice"):
-//                     filterToUrl = "&price-from=";
-//                     break;
-//                 case ("maxPrice"):
-//                     filterToUrl = "&price-to=";
-//                     break;
-//                 case ("minYear"):
-//                     filterToUrl = "&year-from=";
-//                     break;
-//                 case ("maxYear"):
-//                     filterToUrl = "&year-to=";
-//                     break;
-//                 case ("maxMileage"):
-//                     filterToUrl = "&maximum-mileage=";
-//                     break;
-//                 case ("transmission"):
-//                     filterToUrl = "&transmission=";
-//                     break;
-//                 case ("fuelType"):
-//                     filterToUrl = "&fuel-type=";
-//                     break;
-//             }
-//             filterToUrl += filter;
-//             return filterToUrl;
-//         } else {
-//             return "";
-//         }
-//     }
+                // SET LISTING IMAGE URL
+                Element scrapedImageUrl = scrapedImageUrls.get(x);
+                ebayListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
-// }
+                ebayListings.add(ebayListing);
+
+            }
+        } catch (final Exception e) {
+            System.out.println("EXCEPTION ERROR -> " + e);
+        }
+
+        return ebayListings;
+
+    }
+
+    public String checkTitleForYear(String strTitle) {
+        strTitle = strTitle.replaceAll("[^0-9]", "#");
+        String[] arr = strTitle.split("#");
+        StringBuilder values = new StringBuilder();
+        for (String s : arr) {
+            if (s.matches("^[0-9]{4}$")) {
+                values.append(s);
+            }
+        }
+        if(values.length() == 0) {
+            return "";
+        }
+
+        return values.toString();
+    }
+
+    public String[] extractListingUrls(final Elements scrapedUrlListings) {
+        final String[] arrUrlListings = new String[scrapedUrlListings.size()];
+        for (int i = 0; i < scrapedUrlListings.size(); i++) {
+            final Element scrapedUrlListing = scrapedUrlListings.get(i);
+            arrUrlListings[i] = scrapedUrlListing.attr("href");
+        }
+        return arrUrlListings;
+    }
+
+    public String filterToUrl(final String filterToFormat, final String filter) {
+
+        String filterToUrl = "";
+
+        if (!filter.equals("null") && filter != null) {
+
+            switch (filterToFormat) {
+                case ("maxDistance"):
+                    filterToUrl = "&_sadis=";
+                    break;
+                case ("minPrice"):
+                    filterToUrl = "&_udlo=";
+                    break;
+                case ("maxPrice"):
+                    filterToUrl = "&_udhi=";
+                    break;
+                case ("maxMileage"):
+                    filterToUrl = maxMileageToUrl(filter);
+                    break;
+                case ("transmission"):
+                    filterToUrl = "&Transmission=";
+                    break;
+                case ("fuelType"):
+                    filterToUrl = "&Fuel=";
+                    break;
+                default:
+                    return "";
+            }
+            filterToUrl += filter;
+            return filterToUrl;
+        } else {
+            return "";
+        }
+    }
+
+    public String modelYearRangeToUrl(final String minYear, final String maxYear) {
+        final int intMinYear = Integer.parseInt(minYear);
+        final int intMaxYear = Integer.parseInt(maxYear);
+
+        String urlModelYears = "&Model%2520Year=";
+
+        if (!maxYear.equals("null") && maxYear != null) {
+            for (int i = intMaxYear; i >= intMinYear; i--) {
+                if (i == intMinYear) {
+                    urlModelYears += String.valueOf(i);
+                } else {
+                    urlModelYears += (String.valueOf(i) + "%7C");
+                }
+            }
+            return urlModelYears;
+        } else {
+            return "";
+        }
+
+    }
+
+    public String maxMileageToUrl(final String strMaxMileage) {
+        final String[] mileageRange = { "Less%2520than%252010%252C000%2520miles",
+                "%7C25%252C000%2520to%252049%252C999%2520miles", "%7C50%252C000%2520to%252074%252C999%2520miles",
+                "%7C75%252C000%2520to%252099%252C999%2520miles", "More%2520than%2520100%252C000%2520miles" };
+
+        String maxMileageUrl = "&Vehicle%2520Mileage=";
+
+        if (!strMaxMileage.equals("null") && strMaxMileage != null) {
+            switch (strMaxMileage) {
+                case "10000":
+                    maxMileageUrl += mileageRange[0];
+                    break;
+                case "50000":
+                    maxMileageUrl += mileageRange[0] + mileageRange[1];
+                    break;
+                case "75000":
+                    maxMileageUrl += mileageRange[0] + mileageRange[1] + mileageRange[2];
+                    break;
+                case "100000":
+                    maxMileageUrl += mileageRange[0] + mileageRange[1] + mileageRange[2] + mileageRange[3];
+                    break;
+                case "100000+":
+                    maxMileageUrl += mileageRange[4];
+                    break;
+                default: // Default = Up to 100,000 miles
+                    return maxMileageUrl + mileageRange[0] + mileageRange[1] + mileageRange[2] + mileageRange[3];
+            }
+            return maxMileageUrl;
+        } else {
+            return "";
+        }
+
+    }
+
+}
