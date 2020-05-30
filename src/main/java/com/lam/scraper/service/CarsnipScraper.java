@@ -29,7 +29,7 @@ public class CarsnipScraper {
 
     public CompletableFuture<List<Listing>> scrapeCarsnip(final String postcode, final Integer maxDistance,
             final String make, final String model, final Integer minPrice, final Integer maxPrice, final String minYear,
-            final String maxYear, final Integer maxMileage, String transmission, String fuelType) {
+            final String maxYear, final String maxMileage, String transmission, String fuelType) {
 
         Helpers carsnipHelper = new Helpers();
         final String formattedMake = carsnipHelper.encodeSpacesForUrl(make);
@@ -176,6 +176,7 @@ public class CarsnipScraper {
                     filterToUrl = "&max_price=";
                     break;
                 case ("maxMileage"):
+                System.out.println(filter);
                     filterToUrl = "/mileage/_";
                     break;
                 case ("transmission"):
@@ -189,6 +190,9 @@ public class CarsnipScraper {
                     break;
                 default:
                     return "";
+            }
+            if(filter.equals("100000+")) {
+                filter = "500000";
             }
             filterToUrl += filter;
             return filterToUrl;

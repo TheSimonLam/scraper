@@ -29,7 +29,7 @@ public class AutotraderScraper {
     }
 
     public CompletableFuture<List<Listing>> scrapeAutotrader(String postcode, Integer maxDistance, String make,
-            String model, Integer minPrice, Integer maxPrice, String minYear, String maxYear, Integer maxMileage,
+            String model, Integer minPrice, Integer maxPrice, String minYear, String maxYear, String maxMileage,
             String transmission, String fuelType) {
 
         String toStrMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
@@ -39,18 +39,20 @@ public class AutotraderScraper {
         maxYear = filterToUrl("maxYear", String.valueOf(maxYear));
         String toStrMaxMileage = filterToUrl("maxMileage", String.valueOf(maxMileage));
         transmission = filterToUrl("transmission", String.valueOf(transmission));
-        fuelType = filterToUrl("fuelType", String.valueOf(fuelType));
+        ;
 
         Helpers autotraderHelper = new Helpers();
 
         String formattedMake = autotraderHelper.encodeSpacesForUrl(make);
         String formattedModel = autotraderHelper.encodeSpacesForUrl(model);
+        List<String> fuelTypesToList = autotraderHelper.decodeApiInput(fuelType);
+        String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
-        String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
-                + "&model=" + formattedModel + toStrMaxDistance + "&postcode=" + postcode + toStrMinPrice
-                + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelType
-                + "&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New&advertising-location=at_cars&is-quick-search=TRUE&page=";
-
+        // String html = "https://www.autotrader.co.uk/car-search?advertClassification=standard&make=" + formattedMake
+        //         + "&model=" + formattedModel + toStrMaxDistance + "&postcode=" + postcode + toStrMinPrice
+        //         + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelTypeToUrl
+        //         + "&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New&advertising-location=at_cars&is-quick-search=TRUE&page=";
+                String html = "https://www.autotrader.co.uk/car-search?sort=relevance&postcode=" + postcode + toStrMaxDistance + "&make=" + formattedMake + "&model=" + formattedModel + toStrMinPrice + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelTypeToUrl + "&page=";
         String htmlGetMaxPages = html + "1";
 
         try {
@@ -61,8 +63,29 @@ public class AutotraderScraper {
 
         int intMaxPages = getMaxPages(htmlGetMaxPages);
         List<String> pageUrlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(pageUrlsToScrape, intMaxPages));
+    }
+
+    public String buildFuelTypeForUrl(List<String> fuelTypes) {
+        String fuelTypeToUrl = "";
+        if (fuelTypes != null && !fuelTypes.isEmpty()) {
+            for (String fuelType : fuelTypes) {
+                switch (fuelType) {
+                    case "petrol":
+                        fuelTypeToUrl += "&fuel-type=Petrol";
+                        break;
+                    case "diesel":
+                        fuelTypeToUrl += "&fuel-type=Diesel";
+                        break;
+                    case "electric":
+                        fuelTypeToUrl += "&fuel-type=Electric";
+                    case "hybrid":
+                        fuelTypeToUrl += "&fuel-type=Hybrid%20–%20Diesel%2FElectric%20Plug-in&fuel-type=Hybrid%20–%20Petrol%2FElectric&fuel-type=Hybrid%20–%20Petrol%2FElectric%20Plug-in";
+                }
+            }
+        }
+        return fuelTypeToUrl;
     }
 
     public int getMaxPages(String html) {
@@ -147,10 +170,10 @@ public class AutotraderScraper {
                     autotraderListing.setPrice(scrapedPrices.get(x).text());
 
                     // SET URL
-                    autotraderListing.setListingUrl(
-                            "https://www.autotrader.co.uk" + scrapedUrls.get(x).attr("href").toString());
+                    autotraderListing
+                            .setListingUrl("https://www.autotrader.co.uk" + scrapedUrls.get(x).attr("href").toString());
 
-                            // SET IMAGE URL
+                    // SET IMAGE URL
                     Element scrapedImageUrl = scrapedImageUrls.get(x);
                     autotraderListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
@@ -192,9 +215,9 @@ public class AutotraderScraper {
                 case ("transmission"):
                     filterToUrl = "&transmission=";
                     break;
-                case ("fuelType"):
-                    filterToUrl = "&fuel-type=";
-                    break;
+            }
+            if(filter.equals("100000+")) {
+                filter = "500000";
             }
             filterToUrl += filter;
             return filterToUrl;

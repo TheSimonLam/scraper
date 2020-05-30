@@ -30,7 +30,7 @@ public class EbayScraper {
 
     public CompletableFuture<List<Listing>> scrapeEbay(final String postcode, final Integer maxDistance,
             final String make, final String model, final Integer minPrice, final Integer maxPrice, final String minYear,
-            final String maxYear, final Integer maxMileage, String transmission, String fuelType) {
+            final String maxYear, final String maxMileage, String transmission, String fuelType) {
 
         final String toStrMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
         final String toStrMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
@@ -38,16 +38,17 @@ public class EbayScraper {
         final String minAndMaxYear = modelYearRangeToUrl(minYear, maxYear);
         final String toStrMaxMileage = maxMileageToUrl(String.valueOf(maxMileage));
         transmission = filterToUrl("transmission", String.valueOf(transmission));
-        fuelType = filterToUrl("fuelType", String.valueOf(fuelType));
 
         final Helpers ebayHelper = new Helpers();
 
         final String strMakeAndModel = make + " " + model;
         final String formattedMakeAndModel = ebayHelper.encodeSpacesForUrl(strMakeAndModel);
+        List<String> fuelTypesToList = ebayHelper.decodeApiInput(fuelType);
+        String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
         final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + toStrMinPrice + toStrMaxPrice
                 + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
-                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelType + transmission + "&_nkw="
+                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + "&_nkw="
                 + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
         //System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(html));
@@ -144,6 +145,35 @@ public class EbayScraper {
 
     }
 
+    public String buildFuelTypeForUrl(List<String> fuelTypes) {
+        System.out.println("1234567890 " + fuelTypes);
+        String fuelTypeToUrl = "&Fuel=";
+        boolean firstFuelTypeAdded = false;
+        if (fuelTypes != null && !fuelTypes.isEmpty()) {
+            for (String fuelType : fuelTypes) {
+                if (firstFuelTypeAdded) {
+                    fuelTypeToUrl += "&7c";
+                }
+                switch (fuelType) {
+                    case "petrol":
+                        fuelTypeToUrl += "Petrol";
+                        break;
+                    case "diesel":
+                        fuelTypeToUrl += "Diesel";
+                        break;
+                    case "electric":
+                        fuelTypeToUrl += "Electricity";
+                    case "hybrid":
+                        fuelTypeToUrl += "Hybrid%7CPetrol%252FElectricity&_dcat=9837";
+                }
+                if (!fuelTypeToUrl.equals("&Fuel=")) {
+                    firstFuelTypeAdded = true;
+                }
+            }
+        }
+        return fuelTypeToUrl;
+    }
+
     public String checkTitleForYear(String strTitle) {
         strTitle = strTitle.replaceAll("[^0-9]", "#");
         String[] arr = strTitle.split("#");
@@ -153,7 +183,7 @@ public class EbayScraper {
                 values.append(s);
             }
         }
-        if(values.length() == 0) {
+        if (values.length() == 0) {
             return "";
         }
 
@@ -191,9 +221,6 @@ public class EbayScraper {
                 case ("transmission"):
                     filterToUrl = "&Transmission=";
                     break;
-                case ("fuelType"):
-                    filterToUrl = "&Fuel=";
-                    break;
                 default:
                     return "";
             }
@@ -202,6 +229,22 @@ public class EbayScraper {
         } else {
             return "";
         }
+    }
+
+    public String fuelTypeToUrl(String fuelType) {
+        switch (fuelType) {
+            case "petrol":
+                return "petrol";
+            case "diesel":
+                return "diesel";
+            case "electric":
+                break;
+            case "hybrid":
+                return "Hybrid%20–%20Diesel%2FElectric%20Plug-in&fuel-type=Hybrid%20–%20Petrol%2FElectric&fuel-type=Hybrid%20–%20Petrol%2FElectric%20Plug-in";
+            case "unlisted":
+                break;
+        }
+        return "";
     }
 
     public String modelYearRangeToUrl(final String minYear, final String maxYear) {

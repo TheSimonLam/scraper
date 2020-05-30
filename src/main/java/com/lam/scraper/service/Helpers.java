@@ -1,5 +1,9 @@
 package com.lam.scraper.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class Helpers {
 
     public String encodeSpacesForUrl(String filter) {
@@ -12,6 +16,13 @@ public class Helpers {
         }
 
         return sentence.toString();
+    }
+
+    public List<String> decodeApiInput(String filter) {
+        String[] elements = filter.split(",");
+        List<String> fixedLengthList = Arrays.asList(elements);
+        ArrayList<String> listOfString = new ArrayList<String>(fixedLengthList);
+        return listOfString;
     }
 
 }

@@ -38,7 +38,7 @@ public class EndpointController {
 			@RequestParam(required = false, value = "maxPrice") Integer maxPrice,
 			@RequestParam(required = false, value = "minYear") String minYear,
 			@RequestParam(required = false, value = "maxYear") String maxYear,
-			@RequestParam(required = false, value = "maxMileage") Integer maxMileage,
+			@RequestParam(required = false, value = "maxMileage") String maxMileage,
 			@RequestParam(required = false, value = "transmission") String transmission,
 			@RequestParam(required = false, value = "fuelType") String fuelType)
 			throws InterruptedException, ExecutionException {
