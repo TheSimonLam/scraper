@@ -61,7 +61,7 @@ public class AutotraderScraper {
 
         int intMaxPages = getMaxPages(htmlGetMaxPages);
         List<String> pageUrlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        System.out.println("THIS IS THE URL LINK ----->" + html);
+        //System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(pageUrlsToScrape, intMaxPages));
     }
 

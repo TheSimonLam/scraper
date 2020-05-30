@@ -1,7 +1,6 @@
 package com.lam.scraper.service;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -10,7 +9,6 @@ import com.lam.scraper.models.Listing;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.swing.DefaultListModel;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -52,7 +50,7 @@ public class CarsnipScraper {
                 + transmissionToUrl + makeToUrl + maxMileageToUrl + priceToAndFromToUrl + modelToUrl
                 + yearToAndFromToUrl;
         final String htmlCopyForMaxPages = html;
-        System.out.println("THIS IS THE URL LINK ----->" + html);
+        //System.out.println("THIS IS THE URL LINK ----->" + html);
         final int intMaxPages = getMaxPages(htmlCopyForMaxPages);
         List<String> urlsToScrape = buildUrlsToScrape(intMaxPages, html);
         return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages));
