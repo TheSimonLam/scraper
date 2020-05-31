@@ -50,7 +50,7 @@ public class CarsnipScraper {
                 + transmissionToUrl + makeToUrl + maxMileageToUrl + priceToAndFromToUrl + modelToUrl
                 + yearToAndFromToUrl;
         final String htmlCopyForMaxPages = html;
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         final int intMaxPages = getMaxPages(htmlCopyForMaxPages);
         List<String> urlsToScrape = buildUrlsToScrape(intMaxPages, html);
         return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages));

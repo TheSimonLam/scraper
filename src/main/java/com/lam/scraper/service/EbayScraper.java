@@ -78,7 +78,7 @@ public class EbayScraper {
 
         try {
             scrapedListingInfoSection = doc.select("ul.lvdetails.left.space-zero.full-width");
-            scrapedImageUrls = doc.select("a.img.imgWr2 > img");
+            scrapedImageUrls = doc.select("div.lvpic.pic.img.left > div > a > img");
             final int intTotalListings = scrapedListingInfoSection.size();
             final DefaultListModel<String> listMileage = new DefaultListModel<>();
             final DefaultListModel<String> listYear = new DefaultListModel<>();
@@ -132,7 +132,8 @@ public class EbayScraper {
 
                 // SET LISTING IMAGE URL
                 Element scrapedImageUrl = scrapedImageUrls.get(x);
-                ebayListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
+                System.out.println(scrapedImageUrls.get(x));
+                ebayListing.setListingImageAddress(scrapedImageUrl.attr("imgurl"));
 
                 ebayListings.add(ebayListing);
 
