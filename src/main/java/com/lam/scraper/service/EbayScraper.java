@@ -45,7 +45,7 @@ public class EbayScraper {
                 + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
                 + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + "&_nkw="
                 + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(html));
     }
 
@@ -70,15 +70,21 @@ public class EbayScraper {
 
         Elements scrapedListingInfoSection = null;
         Elements scrapedImageUrls = null;
+        Elements scrapedListingContainer = null;
 
         try {
             scrapedListingInfoSection = doc.select("ul.lvdetails.left.space-zero.full-width");
             scrapedImageUrls = doc.select("div.lvpic.pic.img.left > div > a > img");
+            scrapedListingContainer = doc.select("ul#ListViewInner > li");
             final int intTotalListings = scrapedListingInfoSection.size();
             final DefaultListModel<String> listMileage = new DefaultListModel<>();
             final DefaultListModel<String> listYear = new DefaultListModel<>();
 
             for (int x = 0; x < intTotalListings; x++) {
+                String endOfListClassName = scrapedListingContainer.get(x).text();
+                if(!endOfListClassName.isEmpty() && endOfListClassName.equals("Results matching fewer words")) {
+                    break;
+                }
 
                 final Listing ebayListing = new Listing();
 

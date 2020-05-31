@@ -9,7 +9,6 @@ import com.lam.scraper.models.Listing;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -48,16 +47,16 @@ public class CarsnipScraper {
         System.out.println("THIS IS THE URL LINK ----->" + html);
         final int intMaxPages = getMaxPages(htmlCopyForMaxPages);
         List<String> urlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages, maxPrice));
+        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages, String.valueOf(maxPrice)));
     }
 
-    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages, int maxPrice) {
+    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages, String maxPrice) {
 
         List<Listing> carsnipListings = new ArrayList<>();
         boolean maxPriceReached = false;
 
         for (String html : htmlsToScrape) {
-            if(maxPriceReached) {
+            if (maxPriceReached) {
                 break;
             }
 
@@ -83,11 +82,13 @@ public class CarsnipScraper {
                 int intFirstSpan = 0;
 
                 for (int x = 0; x < intTotalListings; x++) {
-                    String listingPriceToInt = scrapedPrices.get(intFirstSpan).text().replace(",", "");
-                    listingPriceToInt = listingPriceToInt.replace("£", "");
-                    if(Integer.parseInt(listingPriceToInt) > maxPrice) {
-                        maxPriceReached = true;
-                        break;
+                    if (!maxPrice.equals("null")) {
+                        String listingPriceToInt = scrapedPrices.get(intFirstSpan).text().replace(",", "");
+                        listingPriceToInt = listingPriceToInt.replace("£", "");
+                        if (Integer.parseInt(listingPriceToInt) > Integer.parseInt(maxPrice)) {
+                            maxPriceReached = true;
+                            break;
+                        }
                     }
 
                     Listing carsnipListing = new Listing();
@@ -105,7 +106,8 @@ public class CarsnipScraper {
                     intFirstSpan += 3;
 
                     // SET URL
-                    carsnipListing.setListingUrl("https://www.carsnip.com/" + scrapedUrls.get(x).attr("href").toString());
+                    carsnipListing
+                            .setListingUrl("https://www.carsnip.com/" + scrapedUrls.get(x).attr("href").toString());
 
                     // SET IMAGE URL
                     Element scrapedImageUrl = scrapedImageUrls.get(x);
@@ -181,7 +183,7 @@ public class CarsnipScraper {
                     filterToUrl = "&max_price=";
                     break;
                 case ("maxMileage"):
-                System.out.println(filter);
+                    System.out.println(filter);
                     filterToUrl = "/mileage/_";
                     break;
                 case ("transmission"):
@@ -196,7 +198,7 @@ public class CarsnipScraper {
                 default:
                     return "";
             }
-            if(filter.equals("100000+")) {
+            if (filter.equals("100000+")) {
                 filter = "500000";
             }
             filterToUrl += filter;
