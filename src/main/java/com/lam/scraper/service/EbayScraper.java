@@ -132,8 +132,11 @@ public class EbayScraper {
 
                 // SET LISTING IMAGE URL
                 Element scrapedImageUrl = scrapedImageUrls.get(x);
-                System.out.println(scrapedImageUrls.get(x));
-                ebayListing.setListingImageAddress(scrapedImageUrl.attr("imgurl"));
+                if (scrapedImageUrl.attr("src").contains("1x2.gif")) {
+                    ebayListing.setListingImageAddress(scrapedImageUrl.attr("imgurl"));
+                } else {
+                    ebayListing.setListingImageAddress(scrapedImageUrl.attr("src"));
+                }
 
                 ebayListings.add(ebayListing);
 
@@ -249,11 +252,11 @@ public class EbayScraper {
     }
 
     public String modelYearRangeToUrl(String minYear, String maxYear) {
-        
-        if(maxYear.equals("null")) {
+
+        if (maxYear.equals("null")) {
             maxYear = "2020";
         }
-        if(minYear.equals("null")) {
+        if (minYear.equals("null")) {
             minYear = "1980";
         }
         final int intMinYear = Integer.parseInt(minYear);
@@ -261,14 +264,14 @@ public class EbayScraper {
 
         String urlModelYears = "&Model%2520Year=";
 
-            for (int i = intMaxYear; i >= intMinYear; i--) {
-                if (i == intMinYear) {
-                    urlModelYears += String.valueOf(i);
-                } else {
-                    urlModelYears += (String.valueOf(i) + "%7C");
-                }
+        for (int i = intMaxYear; i >= intMinYear; i--) {
+            if (i == intMinYear) {
+                urlModelYears += String.valueOf(i);
+            } else {
+                urlModelYears += (String.valueOf(i) + "%7C");
             }
-            return urlModelYears;
+        }
+        return urlModelYears;
 
     }
 
