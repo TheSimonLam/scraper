@@ -19,11 +19,6 @@ import org.jsoup.select.Elements;
 @Async
 public class CarsnipScraper {
 
-    // @Value("${site.carsnip.url}")
-    // private String carsnipUrl;
-    // @Value("${site.carsnip.parse.timeout.ms}")
-    // Integer parseTimeoutMillis;
-
     public CarsnipScraper() {
     }
 
@@ -50,7 +45,7 @@ public class CarsnipScraper {
                 + transmissionToUrl + makeToUrl + maxMileageToUrl + priceToAndFromToUrl + modelToUrl
                 + yearToAndFromToUrl;
         final String htmlCopyForMaxPages = html;
-        System.out.println("THIS IS THE URL LINK ----->" + html);
+        //System.out.println("THIS IS THE URL LINK ----->" + html);
         final int intMaxPages = getMaxPages(htmlCopyForMaxPages);
         List<String> urlsToScrape = buildUrlsToScrape(intMaxPages, html);
         return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages));

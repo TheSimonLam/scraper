@@ -20,11 +20,6 @@ import org.jsoup.select.Elements;
 @Async
 public class AutotraderScraper {
 
-    @Value("${site.autotrader.url}")
-    private String autotraderUrl;
-    @Value("${site.autotrader.parse.timeout.ms}")
-    Integer parseTimeoutMillis;
-
     public AutotraderScraper() {
     }
 
@@ -48,7 +43,9 @@ public class AutotraderScraper {
         List<String> fuelTypesToList = autotraderHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
-                String html = "https://www.autotrader.co.uk/car-search?sort=relevance&postcode=" + postcode + toStrMaxDistance + "&make=" + formattedMake + "&model=" + formattedModel + toStrMinPrice + toStrMaxPrice + minYear + maxYear + toStrMaxMileage + transmission + fuelTypeToUrl + "&page=";
+        String html = "https://www.autotrader.co.uk/car-search?sort=relevance&postcode=" + postcode + toStrMaxDistance
+                + "&make=" + formattedMake + "&model=" + formattedModel + toStrMinPrice + toStrMaxPrice + minYear
+                + maxYear + toStrMaxMileage + transmission + fuelTypeToUrl + "&page=";
         String htmlGetMaxPages = html + "1";
 
         try {
@@ -59,7 +56,7 @@ public class AutotraderScraper {
 
         int intMaxPages = getMaxPages(htmlGetMaxPages);
         List<String> pageUrlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(pageUrlsToScrape, intMaxPages));
     }
 
@@ -118,6 +115,7 @@ public class AutotraderScraper {
     public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages) {
 
         List<Listing> autoTraderListings = new ArrayList<>();
+        int counter = 0;
 
         for (String html : htmlsToScrape) {
 
@@ -130,15 +128,18 @@ public class AutotraderScraper {
             Document doc = Jsoup.parse(html);
             Elements scrapedTitles = doc.getElementsByClass("listing-title title-wrap").select("*");
             Elements scrapedPrices = doc.getElementsByClass("vehicle-price").select("*");
+            // #\32 02003058042589 > span
 
             Elements scrapedUrls = null;
             Elements scrapedListingInfoSection = null;
             Elements scrapedImageUrls = null;
+            Elements scrapedListingContainer = null;
 
             try {
                 scrapedUrls = doc.select("h2.listing-title.title-wrap > a");
                 scrapedListingInfoSection = doc.select("ul.listing-key-specs");
                 scrapedImageUrls = doc.select("a.js-click-handler.listing-fpa-link.tracking-standard-link > img");
+                scrapedListingContainer = doc.select("li.search-page__result");
                 int intTotalListings = scrapedListingInfoSection.size();
                 DefaultListModel<String> listYear = new DefaultListModel<>();
                 DefaultListModel<String> listMileage = new DefaultListModel<>();
@@ -146,34 +147,48 @@ public class AutotraderScraper {
                 for (int x = 0; x < intTotalListings; x++) {
 
                     Listing autotraderListing = new Listing();
+                    System.out.println(scrapedListingContainer.get(x).getElementsByTag("span").first().text());
+                    if (scrapedListingContainer.get(x).getElementsByTag("span").first().text()
+                            .equals("Promoted listing")
+                            || scrapedListingContainer.get(x).getElementsByTag("span").first().text()
+                                    .equals("You may also like")) {
+                                        System.out.println("1234567891234567890");
+                        continue;
 
-                    // SET TITLE
-                    autotraderListing.setTitle(scrapedTitles.get(x).text());
-
-                    // SET YEAR & MILEAGE
-                    String checkIfWriteOffIcon = scrapedListingInfoSection.get(x).getElementsByTag("li").first().text();
-                    if (checkIfWriteOffIcon.equals("CAT Write-off Category Icon")) {
-                        listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(1).text());
-                        listMileage.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(3).text());
                     } else {
-                        listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").first().text());
-                        listMileage.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(2).text());
+                        // SET TITLE
+                        autotraderListing.setTitle(scrapedTitles.get(x).text());
+
+                        // SET YEAR & MILEAGE
+                        String checkIfWriteOffIcon = scrapedListingInfoSection.get(x).getElementsByTag("li").first()
+                                .text();
+                        if (checkIfWriteOffIcon.equals("CAT Write-off Category Icon")) {
+                            listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(1).text());
+                            listMileage
+                                    .addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(3).text());
+                        } else {
+                            listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").first().text());
+                            listMileage
+                                    .addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(2).text());
+                        }
+                        autotraderListing.setYear(listYear.get(x).toString());
+                        autotraderListing.setMileage(listMileage.get(x).toString());
+
+                        // SET PRICE
+                        autotraderListing.setPrice(scrapedPrices.get(x).text());
+
+                        // SET URL
+                        autotraderListing.setListingUrl(
+                                "https://www.autotrader.co.uk" + scrapedUrls.get(x).attr("href").toString());
+
+                        // SET IMAGE URL
+                        Element scrapedImageUrl = scrapedImageUrls.get(x);
+                        autotraderListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
+
+                        autoTraderListings.add(autotraderListing);
+                        counter++;
                     }
-                    autotraderListing.setYear(listYear.get(x).toString());
-                    autotraderListing.setMileage(listMileage.get(x).toString());
 
-                    // SET PRICE
-                    autotraderListing.setPrice(scrapedPrices.get(x).text());
-
-                    // SET URL
-                    autotraderListing
-                            .setListingUrl("https://www.autotrader.co.uk" + scrapedUrls.get(x).attr("href").toString());
-
-                    // SET IMAGE URL
-                    Element scrapedImageUrl = scrapedImageUrls.get(x);
-                    autotraderListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
-
-                    autoTraderListings.add(autotraderListing);
                 }
             } catch (Exception e) {
                 System.out.println("EXCEPTION ERROR -> " + e);
@@ -212,7 +227,7 @@ public class AutotraderScraper {
                     filterToUrl = "&transmission=";
                     break;
             }
-            if(filter.equals("100000+")) {
+            if (filter.equals("100000+")) {
                 filter = "500000";
             }
             filterToUrl += filter;

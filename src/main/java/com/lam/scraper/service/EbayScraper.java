@@ -20,11 +20,6 @@ import org.jsoup.select.Elements;
 @Async
 public class EbayScraper {
 
-    // @Value("${site.ebay.url}")
-    // private String ebayUrl;
-    // @Value("${site.ebay.parse.timeout.ms}")
-    // Integer parseTimeoutMillis;
-
     public EbayScraper() {
     }
 
@@ -50,7 +45,7 @@ public class EbayScraper {
                 + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
                 + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + "&_nkw="
                 + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
-        System.out.println("THIS IS THE URL LINK ----->" + html);
+        //System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(html));
     }
 
@@ -150,7 +145,6 @@ public class EbayScraper {
     }
 
     public String buildFuelTypeForUrl(List<String> fuelTypes) {
-        System.out.println("1234567890 " + fuelTypes);
         String fuelTypeToUrl = "&Fuel=";
         boolean firstFuelTypeAdded = false;
         if (fuelTypes != null && !fuelTypes.isEmpty()) {
