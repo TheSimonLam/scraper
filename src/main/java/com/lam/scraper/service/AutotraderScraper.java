@@ -147,12 +147,10 @@ public class AutotraderScraper {
                 for (int x = 0; x < intTotalListings; x++) {
 
                     Listing autotraderListing = new Listing();
-                    System.out.println(scrapedListingContainer.get(x).getElementsByTag("span").first().text());
                     if (scrapedListingContainer.get(x).getElementsByTag("span").first().text()
                             .equals("Promoted listing")
                             || scrapedListingContainer.get(x).getElementsByTag("span").first().text()
                                     .equals("You may also like")) {
-                                        System.out.println("1234567891234567890");
                         continue;
 
                     } else {

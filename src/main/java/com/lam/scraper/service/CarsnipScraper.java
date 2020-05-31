@@ -45,17 +45,21 @@ public class CarsnipScraper {
                 + transmissionToUrl + makeToUrl + maxMileageToUrl + priceToAndFromToUrl + modelToUrl
                 + yearToAndFromToUrl;
         final String htmlCopyForMaxPages = html;
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         final int intMaxPages = getMaxPages(htmlCopyForMaxPages);
         List<String> urlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages));
+        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages, maxPrice));
     }
 
-    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages) {
+    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages, int maxPrice) {
 
         List<Listing> carsnipListings = new ArrayList<>();
+        boolean maxPriceReached = false;
 
         for (String html : htmlsToScrape) {
+            if(maxPriceReached) {
+                break;
+            }
 
             try {
                 html = Jsoup.connect(html).get().html();
@@ -79,6 +83,12 @@ public class CarsnipScraper {
                 int intFirstSpan = 0;
 
                 for (int x = 0; x < intTotalListings; x++) {
+                    String listingPriceToInt = scrapedPrices.get(intFirstSpan).text().replace(",", "");
+                    listingPriceToInt = listingPriceToInt.replace("£", "");
+                    if(Integer.parseInt(listingPriceToInt) > maxPrice) {
+                        maxPriceReached = true;
+                        break;
+                    }
 
                     Listing carsnipListing = new Listing();
 
