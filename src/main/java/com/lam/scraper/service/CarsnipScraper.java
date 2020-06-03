@@ -119,7 +119,7 @@ public class CarsnipScraper {
                     carsnipListings.add(carsnipListing);
                 }
             } catch (Exception e) {
-                System.out.println("EXCEPTION ERROR -> " + e);
+                System.out.println("EXCEPTION ERROR trying to apply Carsnip listings -> " + e);
             }
         }
 

@@ -39,7 +39,7 @@ public class AutotraderScraper {
         String formattedMake = autotraderHelper.encodeSpacesForUrl(String.valueOf(make));
         String formattedModel = autotraderHelper.encodeSpacesForUrl(String.valueOf(model));
         formattedMake = filterToUrl("make", String.valueOf(formattedMake));
-        formattedMake = filterToUrl("model", String.valueOf(formattedModel));
+        formattedModel = filterToUrl("model", String.valueOf(formattedModel));
         List<String> fuelTypesToList = autotraderHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
@@ -51,7 +51,7 @@ public class AutotraderScraper {
         try {
             htmlGetMaxPages = Jsoup.connect(htmlGetMaxPages).get().html();
         } catch (Exception e) {
-            System.out.println("EXCEPTION ERROR -> " + e);
+            System.out.println("EXCEPTION ERROR trying to connect to Autotrader pages -> " + e);
         }
 
         int intMaxPages = getMaxPages(htmlGetMaxPages);
@@ -128,7 +128,6 @@ public class AutotraderScraper {
             Document doc = Jsoup.parse(html);
             Elements scrapedTitles = doc.getElementsByClass("listing-title title-wrap").select("*");
             Elements scrapedPrices = doc.getElementsByClass("vehicle-price").select("*");
-            // #\32 02003058042589 > span
 
             Elements scrapedUrls = null;
             Elements scrapedListingInfoSection = null;
@@ -147,52 +146,57 @@ public class AutotraderScraper {
                 for (int x = 0; x < intTotalListings; x++) {
 
                     Listing autotraderListing = new Listing();
-                    if (scrapedListingContainer.get(x).getElementsByTag("span").first().text()
-                            .equals("Promoted listing")
-                            || scrapedListingContainer.get(x).getElementsByTag("span").first().text()
-                                    .equals("You may also like")) {
-                        continue;
-
-                    } else {
-                        // SET TITLE
-                        autotraderListing.setTitle(scrapedTitles.get(x).text());
-
-                        // SET YEAR & MILEAGE
-                        String checkIfWriteOffIcon = scrapedListingInfoSection.get(x).getElementsByTag("li").first()
-                                .text();
-                        if (checkIfWriteOffIcon.equals("CAT Write-off Category Icon")) {
-                            listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(1).text());
-                            listMileage
-                                    .addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(3).text());
+                    if (scrapedListingContainer.get(x).hasAttr("span")) {
+                        if (scrapedListingContainer.get(x).getElementsByTag("span").first().text() != null) {
+                            if (scrapedListingContainer.get(x).getElementsByTag("span").first().text()
+                                    .equals("Promoted listing")
+                                    || scrapedListingContainer.get(x).getElementsByTag("span").first().text()
+                                            .equals("You may also like")) {
+                                continue;
+                            }
                         } else {
-                            listYear.addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").first().text());
-                            listMileage
-                                    .addElement(scrapedListingInfoSection.get(x).getElementsByTag("li").get(2).text());
+                            // SET TITLE
+                            autotraderListing.setTitle(scrapedTitles.get(x).text());
+
+                            // SET YEAR & MILEAGE
+                            String checkIfWriteOffIcon = scrapedListingInfoSection.get(x).getElementsByTag("li").first()
+                                    .text();
+                            if (checkIfWriteOffIcon.equals("CAT Write-off Category Icon")) {
+                                listYear.addElement(
+                                        scrapedListingInfoSection.get(x).getElementsByTag("li").get(1).text());
+                                listMileage.addElement(
+                                        scrapedListingInfoSection.get(x).getElementsByTag("li").get(3).text());
+                            } else {
+                                listYear.addElement(
+                                        scrapedListingInfoSection.get(x).getElementsByTag("li").first().text());
+                                listMileage.addElement(
+                                        scrapedListingInfoSection.get(x).getElementsByTag("li").get(2).text());
+                            }
+                            autotraderListing.setYear(listYear.get(x).toString());
+                            autotraderListing.setMileage(listMileage.get(x).toString());
+
+                            // SET PRICE
+                            autotraderListing.setPrice(scrapedPrices.get(x).text());
+
+                            // SET URL
+                            autotraderListing.setListingUrl(
+                                    "https://www.autotrader.co.uk" + scrapedUrls.get(x).attr("href").toString());
+
+                            // SET IMAGE URL
+                            Element scrapedImageUrl = scrapedImageUrls.get(x);
+                            autotraderListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
+
+                            // SET WEBSITE SOURCE
+                            autotraderListing.setWebsiteSource("Autotrader");
+
+                            autoTraderListings.add(autotraderListing);
+                            counter++;
                         }
-                        autotraderListing.setYear(listYear.get(x).toString());
-                        autotraderListing.setMileage(listMileage.get(x).toString());
-
-                        // SET PRICE
-                        autotraderListing.setPrice(scrapedPrices.get(x).text());
-
-                        // SET URL
-                        autotraderListing.setListingUrl(
-                                "https://www.autotrader.co.uk" + scrapedUrls.get(x).attr("href").toString());
-
-                        // SET IMAGE URL
-                        Element scrapedImageUrl = scrapedImageUrls.get(x);
-                        autotraderListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
-
-                        // SET WEBSITE SOURCE
-                        autotraderListing.setWebsiteSource("Autotrader");
-
-                        autoTraderListings.add(autotraderListing);
-                        counter++;
                     }
 
                 }
             } catch (Exception e) {
-                System.out.println("EXCEPTION ERROR -> " + e);
+                System.out.println("EXCEPTION ERROR applying Autotrader listings -> " + e);
             }
         }
         return autoTraderListings;

@@ -36,15 +36,14 @@ public class EbayScraper {
 
         final Helpers ebayHelper = new Helpers();
 
-        final String strMakeAndModel = String.valueOf(make) + " " + String.valueOf(model);
-        String formattedMakeAndModel = ebayHelper.encodeSpacesForUrl(strMakeAndModel);
-        formattedMakeAndModel = filterToUrl("makeAndModel", formattedMakeAndModel);
+        String strMakeAndModel = ebayHelper.encodeSpacesForUrl(String.valueOf(make)) + " " + ebayHelper.encodeSpacesForUrl(String.valueOf(model));
+        strMakeAndModel = filterToUrl("makeAndModel", strMakeAndModel);
         List<String> fuelTypesToList = ebayHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
         final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + toStrMinPrice + toStrMaxPrice
                 + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
-                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
+                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + strMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
         System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(html));
     }
@@ -146,7 +145,7 @@ public class EbayScraper {
 
             }
         } catch (final Exception e) {
-            System.out.println("EXCEPTION ERROR -> " + e);
+            System.out.println("EXCEPTION ERROR trying to apply Ebay listings -> " + e);
         }
 
         return ebayListings;
