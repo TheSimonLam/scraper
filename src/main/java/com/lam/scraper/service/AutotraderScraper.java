@@ -1,7 +1,6 @@
 package com.lam.scraper.service;
 
 import com.lam.scraper.models.Listing;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -34,18 +33,19 @@ public class AutotraderScraper {
         maxYear = filterToUrl("maxYear", String.valueOf(maxYear));
         String toStrMaxMileage = filterToUrl("maxMileage", String.valueOf(maxMileage));
         transmission = filterToUrl("transmission", String.valueOf(transmission));
-        ;
 
         Helpers autotraderHelper = new Helpers();
 
-        String formattedMake = autotraderHelper.encodeSpacesForUrl(make);
-        String formattedModel = autotraderHelper.encodeSpacesForUrl(model);
+        String formattedMake = autotraderHelper.encodeSpacesForUrl(String.valueOf(make));
+        String formattedModel = autotraderHelper.encodeSpacesForUrl(String.valueOf(model));
+        formattedMake = filterToUrl("make", String.valueOf(formattedMake));
+        formattedMake = filterToUrl("model", String.valueOf(formattedModel));
         List<String> fuelTypesToList = autotraderHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
         String html = "https://www.autotrader.co.uk/car-search?sort=relevance&postcode=" + postcode + toStrMaxDistance
-                + "&make=" + formattedMake + "&model=" + formattedModel + toStrMinPrice + toStrMaxPrice + minYear
-                + maxYear + toStrMaxMileage + transmission + fuelTypeToUrl + "&page=";
+                + formattedMake + formattedModel + toStrMinPrice + toStrMaxPrice + minYear + maxYear + toStrMaxMileage
+                + transmission + fuelTypeToUrl + "&page=";
         String htmlGetMaxPages = html + "1";
 
         try {
@@ -183,6 +183,9 @@ public class AutotraderScraper {
                         Element scrapedImageUrl = scrapedImageUrls.get(x);
                         autotraderListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
+                        // SET WEBSITE SOURCE
+                        autotraderListing.setWebsiteSource("Autotrader");
+
                         autoTraderListings.add(autotraderListing);
                         counter++;
                     }
@@ -192,7 +195,6 @@ public class AutotraderScraper {
                 System.out.println("EXCEPTION ERROR -> " + e);
             }
         }
-
         return autoTraderListings;
     }
 
@@ -203,6 +205,12 @@ public class AutotraderScraper {
         if (!filter.equals("null") && filter != null) {
 
             switch (filterToFormat) {
+                case ("make"):
+                    filterToUrl = "&make=";
+                    break;
+                case ("model"):
+                    filterToUrl = "&model=";
+                    break;
                 case ("maxDistance"):
                     filterToUrl = "&radius=";
                     break;

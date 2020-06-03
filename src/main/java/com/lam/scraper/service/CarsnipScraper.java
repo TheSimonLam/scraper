@@ -26,8 +26,8 @@ public class CarsnipScraper {
             final String maxYear, final String maxMileage, String transmission, String fuelType) {
 
         Helpers carsnipHelper = new Helpers();
-        final String formattedMake = carsnipHelper.encodeSpacesForUrl(make);
-        final String formattedModel = carsnipHelper.encodeSpacesForUrl(model);
+        final String formattedMake = carsnipHelper.encodeSpacesForUrl(String.valueOf(make));
+        final String formattedModel = carsnipHelper.encodeSpacesForUrl(String.valueOf(model));
         final String postcodeToUrl = filterToUrl("postcode", String.valueOf(postcode));
         final String makeToUrl = filterToUrl("make", String.valueOf(formattedMake));
         final String modelToUrl = filterToUrl("model", String.valueOf(formattedModel));
@@ -113,6 +113,9 @@ public class CarsnipScraper {
                     Element scrapedImageUrl = scrapedImageUrls.get(x);
                     carsnipListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
+                    // SET WEBSITE SOURCE
+                    carsnipListing.setWebsiteSource("Carsnip");
+
                     carsnipListings.add(carsnipListing);
                 }
             } catch (Exception e) {
@@ -164,7 +167,7 @@ public class CarsnipScraper {
 
         String filterToUrl = "";
 
-        if (!filter.equals("null") && filter != null) {
+        if (!filter.equals("null") && !filter.equals("")) {
 
             switch (filterToFormat) {
                 case ("make"):
@@ -183,7 +186,6 @@ public class CarsnipScraper {
                     filterToUrl = "&max_price=";
                     break;
                 case ("maxMileage"):
-                    System.out.println(filter);
                     filterToUrl = "/mileage/_";
                     break;
                 case ("transmission"):

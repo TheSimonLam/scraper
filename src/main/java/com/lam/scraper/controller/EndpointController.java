@@ -33,7 +33,7 @@ public class EndpointController {
 	public List<Listing> carListingEndpoint(
 			@RequestParam(value = "postcode") String postcode,
 			@RequestParam(required = false, value = "maxDistance") Integer maxDistance,
-			@RequestParam(value = "make") String make, @RequestParam(value = "model") String model,
+			@RequestParam(required = false, value = "make") String make, @RequestParam(required = false, value = "model") String model,
 			@RequestParam(required = false, value = "minPrice") Integer minPrice,
 			@RequestParam(required = false, value = "maxPrice") Integer maxPrice,
 			@RequestParam(required = false, value = "minYear") String minYear,

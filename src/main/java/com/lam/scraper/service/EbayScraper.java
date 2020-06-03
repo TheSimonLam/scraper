@@ -36,15 +36,15 @@ public class EbayScraper {
 
         final Helpers ebayHelper = new Helpers();
 
-        final String strMakeAndModel = make + " " + model;
-        final String formattedMakeAndModel = ebayHelper.encodeSpacesForUrl(strMakeAndModel);
+        final String strMakeAndModel = String.valueOf(make) + " " + String.valueOf(model);
+        String formattedMakeAndModel = ebayHelper.encodeSpacesForUrl(strMakeAndModel);
+        formattedMakeAndModel = filterToUrl("makeAndModel", formattedMakeAndModel);
         List<String> fuelTypesToList = ebayHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
         final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + toStrMinPrice + toStrMaxPrice
                 + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
-                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + "&_nkw="
-                + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
+                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
         System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(html));
     }
@@ -139,6 +139,9 @@ public class EbayScraper {
                     ebayListing.setListingImageAddress(scrapedImageUrl.attr("src"));
                 }
 
+                // SET WEBSITE SOURCE
+                ebayListing.setWebsiteSource("Ebay");
+
                 ebayListings.add(ebayListing);
 
             }
@@ -203,11 +206,11 @@ public class EbayScraper {
         return arrUrlListings;
     }
 
-    public String filterToUrl(final String filterToFormat, final String filter) {
+    public String filterToUrl(final String filterToFormat, String filter) {
 
         String filterToUrl = "";
 
-        if (!filter.equals("null") && filter != null) {
+        if (!filter.equals("null")) {
 
             switch (filterToFormat) {
                 case ("maxDistance"):
@@ -224,6 +227,12 @@ public class EbayScraper {
                     break;
                 case ("transmission"):
                     filterToUrl = "&Transmission=";
+                    break;
+                    case("makeAndModel"):
+                    if(filter.equals("")) {
+                        filter = "cars for sale";
+                    }
+                    filterToUrl = "&_nkw=";
                     break;
                 default:
                     return "";

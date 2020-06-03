@@ -8,6 +8,9 @@ import java.util.List;
 public class Helpers {
 
     public String encodeSpacesForUrl(String filter) {
+        if(filter.equals("null") || filter.contains("null")) {
+            return "";
+        }
         String[] words = filter.split(" ");
         StringBuilder sentence = new StringBuilder(words[0]);
 
