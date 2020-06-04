@@ -8,7 +8,7 @@ import java.util.List;
 public class Helpers {
 
     public String encodeSpacesForUrl(String filter) {
-        if(filter.equals("null") || filter.contains("null")) {
+        if (filter.equals("null") || filter.contains("null")) {
             return "";
         }
         String[] words = filter.split(" ");
@@ -31,7 +31,24 @@ public class Helpers {
             ArrayList<String> listOfString = new ArrayList<String>(fixedLengthList);
             return listOfString;
         }
+    }
 
+    public String formatListingPrice(String price) {
+        if (!price.equals("null")) {
+            if (price.contains("£")) {
+                price = price.replace("£", "");
+            }
+            if (price.contains(",")) {
+                price = price.replace(",", "");
+            }
+            if (price.contains(".")) {
+                int strDecimalPlace = price.indexOf('.');
+                price = price.substring(0, strDecimalPlace);
+            }
+            return price;
+        } else {
+            return "-";
+        }
     }
 
 }

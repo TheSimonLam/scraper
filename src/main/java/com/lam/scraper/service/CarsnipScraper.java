@@ -47,10 +47,10 @@ public class CarsnipScraper {
         System.out.println("THIS IS THE URL LINK ----->" + html);
         final int intMaxPages = getMaxPages(htmlCopyForMaxPages);
         List<String> urlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages, String.valueOf(maxPrice)));
+        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages, String.valueOf(maxPrice), carsnipHelper));
     }
 
-    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages, String maxPrice) {
+    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages, String maxPrice, Helpers carsnipHelper) {
 
         List<Listing> carsnipListings = new ArrayList<>();
         boolean maxPriceReached = false;
@@ -102,7 +102,8 @@ public class CarsnipScraper {
                             .setMileage(scrapedMileage.get(x).select("span[itemprop = mileageFromOdometer]").text());
 
                     // SET PRICE
-                    carsnipListing.setPrice(scrapedPrices.get(intFirstSpan).text());
+                    //carsnipListing.setPrice(scrapedPrices.get(intFirstSpan).text());
+                    carsnipListing.setPrice(carsnipHelper.formatListingPrice(String.valueOf(scrapedPrices.get(intFirstSpan).text())));
                     intFirstSpan += 3;
 
                     // SET URL
