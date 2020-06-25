@@ -1,6 +1,5 @@
 package com.lam.scraper.controller;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -60,6 +59,12 @@ public class EndpointController {
 
 				return allListings;
 
+	}
+
+	@CrossOrigin(origins = { "http://localhost:3000", "http://www.scraper.com" })
+	@GetMapping("/health")
+	public String healthCheck() {
+		return "alive";
 	}
 
 }

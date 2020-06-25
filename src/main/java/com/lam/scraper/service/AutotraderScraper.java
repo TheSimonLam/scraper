@@ -26,12 +26,12 @@ public class AutotraderScraper {
             String model, Integer minPrice, Integer maxPrice, String minYear, String maxYear, String maxMileage,
             String transmission, String fuelType) {
 
-        String toStrMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
-        String toStrMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
-        String toStrMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
+        String formattedMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
+        String formattedMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
+        String formattedMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
         minYear = filterToUrl("minYear", String.valueOf(minYear));
         maxYear = filterToUrl("maxYear", String.valueOf(maxYear));
-        String toStrMaxMileage = filterToUrl("maxMileage", String.valueOf(maxMileage));
+        String formattedMaxMileage = filterToUrl("maxMileage", String.valueOf(maxMileage));
         transmission = filterToUrl("transmission", String.valueOf(transmission));
 
         Helpers autotraderHelper = new Helpers();
@@ -43,20 +43,20 @@ public class AutotraderScraper {
         List<String> fuelTypesToList = autotraderHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
-        String html = "https://www.autotrader.co.uk/car-search?sort=relevance&postcode=" + postcode + toStrMaxDistance
-                + formattedMake + formattedModel + toStrMinPrice + toStrMaxPrice + minYear + maxYear + toStrMaxMileage
+        String AutotraderUrl = "https://www.autotrader.co.uk/car-search?sort=relevance&postcode=" + postcode + formattedMaxDistance
+                + formattedMake + formattedModel + formattedMinPrice + formattedMaxPrice + minYear + maxYear + formattedMaxMileage
                 + transmission + fuelTypeToUrl + "&page=";
-        String htmlGetMaxPages = html + "1";
+        String urlPageOne = AutotraderUrl + "1";
 
         try {
-            htmlGetMaxPages = Jsoup.connect(htmlGetMaxPages).get().html();
+            urlPageOne = Jsoup.connect(urlPageOne).get().html();
         } catch (Exception e) {
             System.out.println("EXCEPTION ERROR trying to connect to Autotrader pages -> " + e);
         }
 
-        int intMaxPages = getMaxPages(htmlGetMaxPages);
-        List<String> pageUrlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        System.out.println("THIS IS THE URL LINK ----->" + html);
+        int intMaxPages = getNoOfPagesToScrape(urlPageOne);
+        List<String> pageUrlsToScrape = buildUrlsToScrape(intMaxPages, AutotraderUrl);
+        System.out.println("THIS IS THE URL LINK ----->" + AutotraderUrl);
         return CompletableFuture.completedFuture(scrape(pageUrlsToScrape, intMaxPages, autotraderHelper));
     }
 
@@ -81,7 +81,7 @@ public class AutotraderScraper {
         return fuelTypeToUrl;
     }
 
-    public int getMaxPages(String html) {
+    public int getNoOfPagesToScrape(String html) {
 
         Document doc = Jsoup.parse(html);
         DefaultListModel<String> pages = new DefaultListModel<>();

@@ -27,11 +27,11 @@ public class EbayScraper {
             final String make, final String model, final Integer minPrice, final Integer maxPrice, final String minYear,
             final String maxYear, final String maxMileage, String transmission, String fuelType) {
 
-        final String toStrMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
-        final String toStrMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
-        final String toStrMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
-        final String minAndMaxYear = modelYearRangeToUrl(String.valueOf(minYear), String.valueOf(maxYear));
-        final String toStrMaxMileage = maxMileageToUrl(String.valueOf(maxMileage));
+        final String formattedMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
+        final String formattedMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
+        final String formattedMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
+        final String formattedMinAndMaxYear = modelYearRangeToUrl(String.valueOf(minYear), String.valueOf(maxYear));
+        final String formattedMaxMileage = maxMileageToUrl(String.valueOf(maxMileage));
         transmission = filterToUrl("transmission", String.valueOf(transmission));
 
         final Helpers ebayHelper = new Helpers();
@@ -42,10 +42,10 @@ public class EbayScraper {
         List<String> fuelTypesToList = ebayHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
-        final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + toStrMinPrice + toStrMaxPrice
-                + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
-                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelTypeToUrl + transmission
-                + strMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
+        final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + formattedMinPrice + formattedMaxPrice
+                + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + formattedMaxDistance + "&_stpos=" + postcode
+                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + formattedMinAndMaxYear + fuelTypeToUrl + transmission
+                + strMakeAndModel + "&_dcat=9844&rt=nc" + formattedMaxMileage;
         System.out.println("THIS IS THE URL LINK ----->" + html);
         return CompletableFuture.completedFuture(scrape(html, ebayHelper));
     }
