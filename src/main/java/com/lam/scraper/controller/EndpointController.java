@@ -28,7 +28,7 @@ public class EndpointController {
 	@Autowired
 	CarsnipScraper carsnipScraper = new CarsnipScraper();
 
-	@CrossOrigin(origins = { "http://localhost:3000", "http://www.scraper.com" })
+	@CrossOrigin(origins = { "http://localhost:3000", "http://a2motors.co.uk/" })
 	@GetMapping("/search")
 	public List<Listing> carListingEndpoint(
 			@RequestParam(value = "postcode") String postcode,
