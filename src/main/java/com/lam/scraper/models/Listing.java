@@ -11,11 +11,13 @@ public class Listing implements Serializable {
     private String mileage;
     private String listingUrl;
     private String listingImageAddress;
+    private String websiteSource;
 
     public Listing() {
     }
 
-    public Listing(String title, String year, String price, String mileage, String listingUrl, String listingImageAddress) {
+    public Listing(String title, String year, String price, String mileage, String listingUrl,
+            String listingImageAddress, String websiteSource) {
         super();
         this.title = title;
         this.year = year;
@@ -23,10 +25,19 @@ public class Listing implements Serializable {
         this.mileage = mileage;
         this.listingUrl = listingUrl;
         this.listingImageAddress = listingImageAddress;
+        this.websiteSource = websiteSource;
     }
 
     public static long getSerialversionuid() {
         return serialVersionUID;
+    }
+
+    public String getWebsiteSource() {
+        return this.websiteSource;
+    }
+
+    public void setWebsiteSource(String websiteSource) {
+        this.websiteSource = websiteSource;
     }
 
     public String getListingImageAddress() {

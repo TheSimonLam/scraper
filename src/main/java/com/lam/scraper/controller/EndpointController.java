@@ -1,6 +1,5 @@
 package com.lam.scraper.controller;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -33,12 +32,12 @@ public class EndpointController {
 	public List<Listing> carListingEndpoint(
 			@RequestParam(value = "postcode") String postcode,
 			@RequestParam(required = false, value = "maxDistance") Integer maxDistance,
-			@RequestParam(value = "make") String make, @RequestParam(value = "model") String model,
+			@RequestParam(required = false, value = "make") String make, @RequestParam(required = false, value = "model") String model,
 			@RequestParam(required = false, value = "minPrice") Integer minPrice,
 			@RequestParam(required = false, value = "maxPrice") Integer maxPrice,
 			@RequestParam(required = false, value = "minYear") String minYear,
 			@RequestParam(required = false, value = "maxYear") String maxYear,
-			@RequestParam(required = false, value = "maxMileage") Integer maxMileage,
+			@RequestParam(required = false, value = "maxMileage") String maxMileage,
 			@RequestParam(required = false, value = "transmission") String transmission,
 			@RequestParam(required = false, value = "fuelType") String fuelType)
 			throws InterruptedException, ExecutionException {
@@ -60,6 +59,12 @@ public class EndpointController {
 
 				return allListings;
 
+	}
+
+	@CrossOrigin(origins = { "http://localhost:3000", "http://www.scraper.com" })
+	@GetMapping("/health")
+	public String healthCheck() {
+		return "alive";
 	}
 
 }

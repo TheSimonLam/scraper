@@ -9,7 +9,6 @@ import com.lam.scraper.models.Listing;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,21 +18,16 @@ import org.jsoup.select.Elements;
 @Async
 public class CarsnipScraper {
 
-    // @Value("${site.carsnip.url}")
-    // private String carsnipUrl;
-    // @Value("${site.carsnip.parse.timeout.ms}")
-    // Integer parseTimeoutMillis;
-
     public CarsnipScraper() {
     }
 
     public CompletableFuture<List<Listing>> scrapeCarsnip(final String postcode, final Integer maxDistance,
             final String make, final String model, final Integer minPrice, final Integer maxPrice, final String minYear,
-            final String maxYear, final Integer maxMileage, String transmission, String fuelType) {
+            final String maxYear, final String maxMileage, String transmission, String fuelType) {
 
         Helpers carsnipHelper = new Helpers();
-        final String formattedMake = carsnipHelper.encodeSpacesForUrl(make);
-        final String formattedModel = carsnipHelper.encodeSpacesForUrl(model);
+        final String formattedMake = carsnipHelper.encodeSpacesForUrl(String.valueOf(make));
+        final String formattedModel = carsnipHelper.encodeSpacesForUrl(String.valueOf(model));
         final String postcodeToUrl = filterToUrl("postcode", String.valueOf(postcode));
         final String makeToUrl = filterToUrl("make", String.valueOf(formattedMake));
         final String modelToUrl = filterToUrl("model", String.valueOf(formattedModel));
@@ -50,17 +44,21 @@ public class CarsnipScraper {
                 + transmissionToUrl + makeToUrl + maxMileageToUrl + priceToAndFromToUrl + modelToUrl
                 + yearToAndFromToUrl;
         final String htmlCopyForMaxPages = html;
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
+        System.out.println("THIS IS THE URL LINK ----->" + html);
         final int intMaxPages = getMaxPages(htmlCopyForMaxPages);
         List<String> urlsToScrape = buildUrlsToScrape(intMaxPages, html);
-        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages));
+        return CompletableFuture.completedFuture(scrape(urlsToScrape, intMaxPages, String.valueOf(maxPrice), carsnipHelper));
     }
 
-    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages) {
+    public List<Listing> scrape(List<String> htmlsToScrape, int intMaxPages, String maxPrice, Helpers carsnipHelper) {
 
         List<Listing> carsnipListings = new ArrayList<>();
+        boolean maxPriceReached = false;
 
         for (String html : htmlsToScrape) {
+            if (maxPriceReached) {
+                break;
+            }
 
             try {
                 html = Jsoup.connect(html).get().html();
@@ -84,6 +82,14 @@ public class CarsnipScraper {
                 int intFirstSpan = 0;
 
                 for (int x = 0; x < intTotalListings; x++) {
+                    if (!maxPrice.equals("null")) {
+                        String listingPriceToInt = scrapedPrices.get(intFirstSpan).text().replace(",", "");
+                        listingPriceToInt = listingPriceToInt.replace("£", "");
+                        if (Integer.parseInt(listingPriceToInt) > Integer.parseInt(maxPrice)) {
+                            maxPriceReached = true;
+                            break;
+                        }
+                    }
 
                     Listing carsnipListing = new Listing();
 
@@ -96,20 +102,25 @@ public class CarsnipScraper {
                             .setMileage(scrapedMileage.get(x).select("span[itemprop = mileageFromOdometer]").text());
 
                     // SET PRICE
-                    carsnipListing.setPrice(scrapedPrices.get(intFirstSpan).text());
+                    //carsnipListing.setPrice(scrapedPrices.get(intFirstSpan).text());
+                    carsnipListing.setPrice(carsnipHelper.formatListingPrice(String.valueOf(scrapedPrices.get(intFirstSpan).text())));
                     intFirstSpan += 3;
 
                     // SET URL
-                    carsnipListing.setListingUrl("https://www.carsnip.com/" + scrapedUrls.get(x).attr("href").toString());
+                    carsnipListing
+                            .setListingUrl("https://www.carsnip.com/" + scrapedUrls.get(x).attr("href").toString());
 
                     // SET IMAGE URL
                     Element scrapedImageUrl = scrapedImageUrls.get(x);
                     carsnipListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
 
+                    // SET WEBSITE SOURCE
+                    carsnipListing.setWebsiteSource("Carsnip");
+
                     carsnipListings.add(carsnipListing);
                 }
             } catch (Exception e) {
-                System.out.println("EXCEPTION ERROR -> " + e);
+                System.out.println("EXCEPTION ERROR trying to apply Carsnip listings -> " + e);
             }
         }
 
@@ -157,7 +168,7 @@ public class CarsnipScraper {
 
         String filterToUrl = "";
 
-        if (!filter.equals("null") && filter != null) {
+        if (!filter.equals("null") && !filter.equals("")) {
 
             switch (filterToFormat) {
                 case ("make"):
@@ -189,6 +200,9 @@ public class CarsnipScraper {
                     break;
                 default:
                     return "";
+            }
+            if (filter.equals("100000+")) {
+                filter = "500000";
             }
             filterToUrl += filter;
             return filterToUrl;

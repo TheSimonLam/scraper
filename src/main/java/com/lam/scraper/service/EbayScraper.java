@@ -20,40 +20,37 @@ import org.jsoup.select.Elements;
 @Async
 public class EbayScraper {
 
-    // @Value("${site.ebay.url}")
-    // private String ebayUrl;
-    // @Value("${site.ebay.parse.timeout.ms}")
-    // Integer parseTimeoutMillis;
-
     public EbayScraper() {
     }
 
     public CompletableFuture<List<Listing>> scrapeEbay(final String postcode, final Integer maxDistance,
             final String make, final String model, final Integer minPrice, final Integer maxPrice, final String minYear,
-            final String maxYear, final Integer maxMileage, String transmission, String fuelType) {
+            final String maxYear, final String maxMileage, String transmission, String fuelType) {
 
-        final String toStrMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
-        final String toStrMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
-        final String toStrMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
-        final String minAndMaxYear = modelYearRangeToUrl(minYear, maxYear);
-        final String toStrMaxMileage = maxMileageToUrl(String.valueOf(maxMileage));
+        final String formattedMaxDistance = filterToUrl("maxDistance", String.valueOf(maxDistance));
+        final String formattedMinPrice = filterToUrl("minPrice", String.valueOf(minPrice));
+        final String formattedMaxPrice = filterToUrl("maxPrice", String.valueOf(maxPrice));
+        final String formattedMinAndMaxYear = modelYearRangeToUrl(String.valueOf(minYear), String.valueOf(maxYear));
+        final String formattedMaxMileage = maxMileageToUrl(String.valueOf(maxMileage));
         transmission = filterToUrl("transmission", String.valueOf(transmission));
-        fuelType = filterToUrl("fuelType", String.valueOf(fuelType));
 
         final Helpers ebayHelper = new Helpers();
 
-        final String strMakeAndModel = make + " " + model;
-        final String formattedMakeAndModel = ebayHelper.encodeSpacesForUrl(strMakeAndModel);
+        String strMakeAndModel = ebayHelper.encodeSpacesForUrl(String.valueOf(make)) + " "
+                + ebayHelper.encodeSpacesForUrl(String.valueOf(model));
+        strMakeAndModel = filterToUrl("makeAndModel", strMakeAndModel);
+        List<String> fuelTypesToList = ebayHelper.decodeApiInput(fuelType);
+        String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
-        final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + toStrMinPrice + toStrMaxPrice
-                + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + toStrMaxDistance + "&_stpos=" + postcode
-                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + minAndMaxYear + fuelType + transmission + "&_nkw="
-                + formattedMakeAndModel + "&_dcat=9844&rt=nc" + toStrMaxMileage;
-        //System.out.println("THIS IS THE URL LINK ----->" + html);
-        return CompletableFuture.completedFuture(scrape(html));
+        final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + formattedMinPrice + formattedMaxPrice
+                + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + formattedMaxDistance + "&_stpos=" + postcode
+                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + formattedMinAndMaxYear + fuelTypeToUrl + transmission
+                + strMakeAndModel + "&_dcat=9844&rt=nc" + formattedMaxMileage;
+        System.out.println("THIS IS THE URL LINK ----->" + html);
+        return CompletableFuture.completedFuture(scrape(html, ebayHelper));
     }
 
-    public List<Listing> scrape(String html) {
+    public List<Listing> scrape(String html, Helpers ebayHelper) {
 
         final List<Listing> ebayListings = new ArrayList<>();
 
@@ -74,15 +71,21 @@ public class EbayScraper {
 
         Elements scrapedListingInfoSection = null;
         Elements scrapedImageUrls = null;
+        Elements scrapedListingContainer = null;
 
         try {
             scrapedListingInfoSection = doc.select("ul.lvdetails.left.space-zero.full-width");
-            scrapedImageUrls = doc.select("a.img.imgWr2 > img");
+            scrapedImageUrls = doc.select("div.lvpic.pic.img.left > div > a > img");
+            scrapedListingContainer = doc.select("ul#ListViewInner > li");
             final int intTotalListings = scrapedListingInfoSection.size();
             final DefaultListModel<String> listMileage = new DefaultListModel<>();
             final DefaultListModel<String> listYear = new DefaultListModel<>();
 
             for (int x = 0; x < intTotalListings; x++) {
+                String endOfListClassName = scrapedListingContainer.get(x).text();
+                if (!endOfListClassName.isEmpty() && endOfListClassName.equals("Results matching fewer words")) {
+                    break;
+                }
 
                 final Listing ebayListing = new Listing();
 
@@ -124,24 +127,59 @@ public class EbayScraper {
                 ebayListing.setYear(listYear.get(x).toString());
 
                 // SET PRICE
-                ebayListing.setPrice(scrapedPrices.get(x).text());
+                ebayListing.setPrice(ebayHelper.formatListingPrice(String.valueOf(scrapedPrices.get(x).text())));
 
                 // SET LISTING URL
                 ebayListing.setListingUrl(strUrlListings[x]);
 
                 // SET LISTING IMAGE URL
                 Element scrapedImageUrl = scrapedImageUrls.get(x);
-                ebayListing.setListingImageAddress(scrapedImageUrl.absUrl("src"));
+                if (scrapedImageUrl.attr("src").contains("1x2.gif")) {
+                    ebayListing.setListingImageAddress(scrapedImageUrl.attr("imgurl"));
+                } else {
+                    ebayListing.setListingImageAddress(scrapedImageUrl.attr("src"));
+                }
+
+                // SET WEBSITE SOURCE
+                ebayListing.setWebsiteSource("Ebay");
 
                 ebayListings.add(ebayListing);
 
             }
         } catch (final Exception e) {
-            System.out.println("EXCEPTION ERROR -> " + e);
+            System.out.println("EXCEPTION ERROR trying to apply Ebay listings -> " + e);
         }
 
         return ebayListings;
 
+    }
+
+    public String buildFuelTypeForUrl(List<String> fuelTypes) {
+        String fuelTypeToUrl = "&Fuel=";
+        boolean firstFuelTypeAdded = false;
+        if (fuelTypes != null && !fuelTypes.isEmpty()) {
+            for (String fuelType : fuelTypes) {
+                if (firstFuelTypeAdded) {
+                    fuelTypeToUrl += "&7c";
+                }
+                switch (fuelType) {
+                    case "petrol":
+                        fuelTypeToUrl += "Petrol";
+                        break;
+                    case "diesel":
+                        fuelTypeToUrl += "Diesel";
+                        break;
+                    case "electric":
+                        fuelTypeToUrl += "Electricity";
+                    case "hybrid":
+                        fuelTypeToUrl += "Hybrid%7CPetrol%252FElectricity&_dcat=9837";
+                }
+                if (!fuelTypeToUrl.equals("&Fuel=")) {
+                    firstFuelTypeAdded = true;
+                }
+            }
+        }
+        return fuelTypeToUrl;
     }
 
     public String checkTitleForYear(String strTitle) {
@@ -153,7 +191,7 @@ public class EbayScraper {
                 values.append(s);
             }
         }
-        if(values.length() == 0) {
+        if (values.length() == 0) {
             return "";
         }
 
@@ -169,11 +207,11 @@ public class EbayScraper {
         return arrUrlListings;
     }
 
-    public String filterToUrl(final String filterToFormat, final String filter) {
+    public String filterToUrl(final String filterToFormat, String filter) {
 
         String filterToUrl = "";
 
-        if (!filter.equals("null") && filter != null) {
+        if (!filter.equals("null")) {
 
             switch (filterToFormat) {
                 case ("maxDistance"):
@@ -191,8 +229,11 @@ public class EbayScraper {
                 case ("transmission"):
                     filterToUrl = "&Transmission=";
                     break;
-                case ("fuelType"):
-                    filterToUrl = "&Fuel=";
+                case ("makeAndModel"):
+                    if (filter.equals("")) {
+                        filter = "cars for sale";
+                    }
+                    filterToUrl = "&_nkw=";
                     break;
                 default:
                     return "";
@@ -204,24 +245,43 @@ public class EbayScraper {
         }
     }
 
-    public String modelYearRangeToUrl(final String minYear, final String maxYear) {
+    public String fuelTypeToUrl(String fuelType) {
+        switch (fuelType) {
+            case "petrol":
+                return "petrol";
+            case "diesel":
+                return "diesel";
+            case "electric":
+                break;
+            case "hybrid":
+                return "Hybrid%20–%20Diesel%2FElectric%20Plug-in&fuel-type=Hybrid%20–%20Petrol%2FElectric&fuel-type=Hybrid%20–%20Petrol%2FElectric%20Plug-in";
+            case "unlisted":
+                break;
+        }
+        return "";
+    }
+
+    public String modelYearRangeToUrl(String minYear, String maxYear) {
+
+        if (maxYear.equals("null")) {
+            maxYear = "2020";
+        }
+        if (minYear.equals("null")) {
+            minYear = "1980";
+        }
         final int intMinYear = Integer.parseInt(minYear);
         final int intMaxYear = Integer.parseInt(maxYear);
 
         String urlModelYears = "&Model%2520Year=";
 
-        if (!maxYear.equals("null") && maxYear != null) {
-            for (int i = intMaxYear; i >= intMinYear; i--) {
-                if (i == intMinYear) {
-                    urlModelYears += String.valueOf(i);
-                } else {
-                    urlModelYears += (String.valueOf(i) + "%7C");
-                }
+        for (int i = intMaxYear; i >= intMinYear; i--) {
+            if (i == intMinYear) {
+                urlModelYears += String.valueOf(i);
+            } else {
+                urlModelYears += (String.valueOf(i) + "%7C");
             }
-            return urlModelYears;
-        } else {
-            return "";
         }
+        return urlModelYears;
 
     }
 
