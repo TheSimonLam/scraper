@@ -22,6 +22,14 @@ public class Helpers {
         return sentence.toString();
     }
 
+    public String decodeSpacesForTitleCheck(String title) {
+        if (title.equals("null") || title.contains("null")) {
+            return "";
+        }
+
+        return title.replaceAll("%20", " ");
+    }
+
     public List<String> decodeApiInput(String filter) {
         if (filter == null) {
             return Collections.emptyList();

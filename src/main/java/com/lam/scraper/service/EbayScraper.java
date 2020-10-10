@@ -36,21 +36,22 @@ public class EbayScraper {
 
         final Helpers ebayHelper = new Helpers();
 
-        String strMakeAndModel = ebayHelper.encodeSpacesForUrl(String.valueOf(make)) + " "
+        String strMakeAndModel = ebayHelper.encodeSpacesForUrl(String.valueOf(make)) + "%20"
                 + ebayHelper.encodeSpacesForUrl(String.valueOf(model));
         strMakeAndModel = filterToUrl("makeAndModel", strMakeAndModel);
+        System.out.println(strMakeAndModel + "MAKE AND MODEL MAKE AND MODEL");
         List<String> fuelTypesToList = ebayHelper.decodeApiInput(fuelType);
         String fuelTypeToUrl = buildFuelTypeForUrl(fuelTypesToList);
 
-        final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + formattedMinPrice + formattedMaxPrice
-                + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + formattedMaxDistance + "&_stpos=" + postcode
-                + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + formattedMinAndMaxYear + fuelTypeToUrl + transmission
-                + strMakeAndModel + "&_dcat=9844&rt=nc" + formattedMaxMileage;
+        final String html = "https://www.ebay.co.uk/sch/i.html?_sacat=0&_mPrRngCbx=1" + formattedMinPrice
+                + formattedMaxPrice + "&_ftrt=901&_ftrv=1&_sabdlo&_sabdhi&_samilow&_samihi" + formattedMaxDistance
+                + "&_stpos=" + postcode + "&_fspt=1&_sop=12&_dmd=1&_ipg=50&_fosrp=1" + formattedMinAndMaxYear
+                + fuelTypeToUrl + transmission + strMakeAndModel + "&_dcat=9844&rt=nc" + formattedMaxMileage;
         System.out.println("THIS IS THE URL LINK ----->" + html);
-        return CompletableFuture.completedFuture(scrape(html, ebayHelper));
+        return CompletableFuture.completedFuture(scrape(html, ebayHelper, strMakeAndModel));
     }
 
-    public List<Listing> scrape(String html, Helpers ebayHelper) {
+    public List<Listing> scrape(String html, Helpers ebayHelper, String strMakeAndModel) {
 
         final List<Listing> ebayListings = new ArrayList<>();
 
@@ -90,6 +91,9 @@ public class EbayScraper {
                 final Listing ebayListing = new Listing();
 
                 // SET TITLE
+                if (!scrapedTitles.get(x).text().contains(ebayHelper.decodeSpacesForTitleCheck(strMakeAndModel))) {
+                    continue;
+                }
                 ebayListing.setTitle(scrapedTitles.get(x).text());
 
                 // SET MILEAGE
